@@ -29,9 +29,16 @@
   }
 
   #actions {
-    flex-direction: column;
-    gap: 0.5em;
-  }
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  justify-content: space-between;
+}
+
+	#actions .btn {
+  flex: 1 1 30%;
+  font-size: 0.85em;
+}
 
   .btn {
     width: 100%;
@@ -104,6 +111,7 @@ select {
   <h2>🧮 長照服務額度試算小工具</h2>
   <div id="actions">
     <button class="btn" onclick="addRow()">➕ 新增欄位</button>
+	<button class="btn" onclick="applyCount()">📌 套用次數</button>
     <button class="btn" onclick="clearAll()">🗑️ 全部清除</button>
   </div>
 
@@ -188,48 +196,53 @@ select {
     }
 
     function calculate(returnGroup = false) {
-      const rows = document.querySelectorAll("#serviceTable tbody tr");
-      let total = 0, copayTotal = 0;
-      const subsidyRate = parseFloat(document.querySelector("#subsidyRate").value);
-      let outputGroups = { BA: [], GA: [], SC: [], other: [], priceMap: {} };
+  const rows = document.querySelectorAll("#serviceTable tbody tr");
+  let total = 0, copayTotal = 0, totalForQuota = 0;
+  const subsidyRate = parseFloat(document.querySelector("#subsidyRate").value);
+  let outputGroups = { BA: [], GA: [], SC: [], other: [], priceMap: {} };
 
-      rows.forEach(row => {
-        const select = row.querySelector("select");
-        const serviceCode = select.value;
-        const nameInput = row.querySelector(".custom-name");
-        const name = nameInput ? nameInput.value : serviceCode;
-        const price = parseInt(row.querySelector(".price-input").value || 0);
-        const count = parseInt(row.querySelector(".count-input").value || 0);
-        const subtotal = price * count;
-        row.cells[3].textContent = subtotal;
-        total += subtotal;
+  rows.forEach(row => {
+    const select = row.querySelector("select");
+    const serviceCode = select.value;
+    const nameInput = row.querySelector(".custom-name");
+    const name = nameInput ? nameInput.value : serviceCode;
+    const price = parseInt(row.querySelector(".price-input").value || 0);
+    const count = parseInt(row.querySelector(".count-input").value || 0);
+    const subtotal = price * count;
+    row.cells[3].textContent = subtotal;
+    total += subtotal;
 
-        const perItemCopay = Math.floor(price * subsidyRate);
-        copayTotal += perItemCopay * count;
-
-        const item = `${name}*${count}`;
-        outputGroups.priceMap[name] = price;
-        if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") outputGroups.BA.push(item);
-        else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
-        else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
-        else outputGroups.other.push(item);
-      });
-
-      const subsidy = total - copayTotal;
-      const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
-      const hasExtraCare = document.querySelector("#extraCare").checked;
-      const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
-      const remaining = finalQuota - total;
-
-      document.querySelector("#totalCost").textContent = total;
-      document.querySelector("#copayAmount").textContent = copayTotal;
-      document.querySelector("#subsidyAmount").textContent = subsidy;
-      const remainEl = document.querySelector("#remainingQuota");
-      remainEl.textContent = remaining;
-      remainEl.className = remaining >= 0 ? "blue" : "red";
-
-      return outputGroups;
+    // 只有 BA 或 自行輸入的才列入剩餘額度計算
+    if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") {
+      totalForQuota += subtotal;
     }
+
+    const perItemCopay = Math.floor(price * subsidyRate);
+    copayTotal += perItemCopay * count;
+
+    const item = `${name}*${count}`;
+    outputGroups.priceMap[name] = price;
+    if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") outputGroups.BA.push(item);
+    else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
+    else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
+    else outputGroups.other.push(item);
+  });
+
+  const subsidy = total - copayTotal;
+  const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
+  const hasExtraCare = document.querySelector("#extraCare").checked;
+  const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
+  const remaining = finalQuota - totalForQuota;
+
+  document.querySelector("#totalCost").textContent = total;
+  document.querySelector("#copayAmount").textContent = copayTotal;
+  document.querySelector("#subsidyAmount").textContent = subsidy;
+  const remainEl = document.querySelector("#remainingQuota");
+  remainEl.textContent = remaining;
+  remainEl.className = remaining >= 0 ? "blue" : "red";
+
+  return outputGroups;
+}
 
     function clearAll() {
       document.querySelector("#serviceTable tbody").innerHTML = "";
@@ -305,6 +318,7 @@ if (select.value === "自行輸入") {
       countInput.className = "count-input";
       countInput.min = 0;
       countInput.value = 1;
+countInput.onfocus = () => countInput.select();
       countInput.oninput = calculate;
 
       const plusBtn = document.createElement("button");
@@ -348,6 +362,20 @@ if (select.value === "自行輸入") {
       notice.style.display = "block";
       setTimeout(() => { notice.style.display = "none"; }, 3000);
     }
+	function applyCount() {
+  const value = prompt("請輸入要套用的次數數字：");
+  const num = parseInt(value);
+  if (isNaN(num) || num < 0) {
+    alert("請輸入有效的正整數。");
+    return;
+  }
+
+  document.querySelectorAll(".count-input").forEach(input => {
+    input.value = num;
+  });
+
+  calculate();
+}
 
     window.onload = () => addRow();
   </script>
