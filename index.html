@@ -4,52 +4,101 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>長照服務額度試算小工具</title>
-  <style>
-    body { font-family: 'Segoe UI', sans-serif; padding: 2em; background-color: #f8f9fa; }
-    h2 { text-align: center; color: #333; }
-    #actions { display: flex; justify-content: space-between; margin-bottom: 1em; }
-    .btn { padding: 0.5em 1em; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    .btn:hover { background-color: #0056b3; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
-    th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
-    input[type="number"], input[type="text"] { width: 60px; text-align: center; }
-    .result { margin-top: 2em; font-size: 1.1em; }
-    .blue { color: #007bff; } .red { color: #dc3545; }
-    #outputBox { margin-top: 3em; }
-    #generatedOutput { width: 100%; height: 100px; margin-bottom: 1em; }
-    .delete-btn { cursor: pointer; color: #dc3545; font-weight: bold; font-size: 1.2em; }
-    .footer { margin-top: 3em; text-align: right; font-size: 0.8em; color: #aaa; font-family: "Courier New", cursive; }
-    .counter-controls button { padding: 0 8px; font-weight: bold; }
+<style>
+  body { font-family: 'Segoe UI', sans-serif; padding: 2em; background-color: #f8f9fa; }
+  h2 { text-align: center; color: #333; }
+  #actions { display: flex; justify-content: space-between; margin-bottom: 1em; }
+  .btn { padding: 0.5em 1em; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  .btn:hover { background-color: #0056b3; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+  th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
+  input[type="number"], input[type="text"] { width: 60px; text-align: center; }
+  .result { margin-top: 2em; font-size: 1.1em; }
+  .blue { color: #007bff; } .red { color: #dc3545; }
+  #outputBox { margin-top: 3em; }
+  #generatedOutput { width: 100%; height: 100px; margin-bottom: 1em; }
+  .delete-btn { cursor: pointer; color: #dc3545; font-weight: bold; font-size: 1.2em; }
+  .footer { margin-top: 3em; text-align: right; font-size: 0.8em; color: #aaa; font-family: "Courier New", cursive; }
+  .counter-controls button { padding: 0 8px; font-weight: bold; }
+
+  /* ✅ 手機響應式設計（不滑動，格子變窄） */
 @media (max-width: 768px) {
   body {
     padding: 1em;
-    font-size: 0.95em;
+    font-size: 0.9em;
   }
+
   #actions {
     flex-direction: column;
     gap: 0.5em;
   }
+
   .btn {
     width: 100%;
     font-size: 1em;
   }
+
   table {
-    display: block;
-    overflow-x: auto;
     width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
   }
-  th, td {
-    white-space: nowrap;
+
+th, td {
+  font-size: 0.75em;
+  padding: 0.25em;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+}
+
+input[type="number"], input[type="text"] {
+  width: 100%;
+  font-size: 0.75em;
+  box-sizing: border-box;
+}
+
+.custom-name {
+  width: 100%;
+  font-size: 0.75em;
+  box-sizing: border-box;
+  display: block;
+  margin-top: 4px;
+}
+
+  .counter-controls {
+    flex-direction: column;
+    align-items: center;
   }
+
+  .counter-controls button {
+    font-size: 0.75em;
+    padding: 2px 6px;
+    margin: 1px 0;
+  }
+
   #generatedOutput {
     height: 120px;
   }
-  .result p {
-    word-break: break-word;
-  }
+.select-wrapper {
+  display: flex;
+  gap: 4px;
+  flex-direction: column;
+}
+.select-wrapper select,
+.select-wrapper .custom-name {
+  width: 100%;
+  font-size: 0.75em;
+  box-sizing: border-box;
+}
+select {
+  width: 100%;
+  min-width: 60px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-  </style>
+</style>
 </head>
 <body>
   <h2>🧮 長照服務額度試算小工具</h2>
@@ -61,7 +110,7 @@
   <table id="serviceTable">
     <thead>
       <tr>
-        <th>服務項目</th><th>單次費用（元）</th><th>使用次數</th><th>小計（元）</th><th>刪除</th>
+        <th>項目</th><th>費用</th><th>次數</th><th>小計</th><th>刪除</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -203,15 +252,22 @@
       select.onchange = () => {
         const priceInput = row.querySelector(".price-input");
         const customInput = row.querySelector(".custom-name");
-        if (select.value === "自行輸入") {
-          if (!customInput) {
-            const input = document.createElement("input");
-            input.type = "text";
-            input.className = "custom-name";
-            input.placeholder = "項目名稱";
-            serviceCell.appendChild(input);
-          }
-          priceInput.readOnly = false;
+if (select.value === "自行輸入") {
+  if (!serviceCell.querySelector(".select-wrapper")) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "select-wrapper";
+    wrapper.appendChild(select);
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "custom-name";
+    input.placeholder = "項目名稱";
+    wrapper.appendChild(input);
+
+    serviceCell.innerHTML = "";
+    serviceCell.appendChild(wrapper);
+  }
+  priceInput.readOnly = false;
         } else {
           if (customInput) customInput.remove();
           priceInput.value = services[select.value];
