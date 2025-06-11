@@ -150,7 +150,9 @@ select {
   </div>
 
   <div id="outputBox">
-    <textarea id="generatedOutput" readonly></textarea>
+	<label for="caseName">👤 個案：</label>
+<input type="text" id="caseName" placeholder="選填" style="margin-bottom: 0.5em; width: 6em; display: inline-block; margin-right: 1em;">
+	<textarea id="generatedOutput" readonly></textarea>
     <button class="btn" onclick="generateSummary()">📋 內容產出</button>
     <button class="btn" onclick="copyOutput()">🖍️ 一鍵複製</button>
     <div id="copyNotice" style="color: green; margin-top: 0.5em; display: none;">✅ 已複製！</div>
@@ -183,17 +185,32 @@ select {
     }
 
     function generateSummary() {
-      const groups = calculate(true);
-      let result = [];
-      if (groups.BA.length) result.push(groups.BA.join(",") + "," + sumGroup(groups.BA, groups.priceMap));
-      if (groups.GA.length || groups.SC.length) {
-        const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, groups.priceMap) : "";
-        const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, groups.priceMap) : "";
-        result.push([ga, sc].filter(Boolean).join(" ; "));
-      }
-      if (groups.other.length) result.push(groups.other.join(",") + "," + sumGroup(groups.other, groups.priceMap));
-      document.querySelector("#generatedOutput").value = result.join("\n");
-    }
+  const groups = calculate(true);
+  let result = [];
+
+  // 讀取個案欄位資料
+  const caseName = document.querySelector("#caseName").value.trim();
+
+  if (groups.BA.length) {
+    let line = groups.BA.join(",") + "," + sumGroup(groups.BA, groups.priceMap);
+    if (caseName) line = caseName + "：" + line;
+    result.push(line);
+  }
+
+  if (groups.GA.length || groups.SC.length) {
+    const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, groups.priceMap) : "";
+    const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, groups.priceMap) : "";
+    result.push([ga, sc].filter(Boolean).join(" ; "));
+  }
+
+  if (groups.other.length) {
+    let line = groups.other.join(",") + "," + sumGroup(groups.other, groups.priceMap);
+    if (caseName) line = caseName + "," + line;
+    result.push(line);
+  }
+
+  document.querySelector("#generatedOutput").value = result.join("\n");
+}
 
     function calculate(returnGroup = false) {
   const rows = document.querySelectorAll("#serviceTable tbody tr");
