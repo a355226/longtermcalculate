@@ -20,6 +20,35 @@
     .delete-btn { cursor: pointer; color: #dc3545; font-weight: bold; font-size: 1.2em; }
     .footer { margin-top: 3em; text-align: right; font-size: 0.8em; color: #aaa; font-family: "Courier New", cursive; }
     .counter-controls button { padding: 0 8px; font-weight: bold; }
+@media (max-width: 768px) {
+  body {
+    padding: 1em;
+    font-size: 0.95em;
+  }
+  #actions {
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  .btn {
+    width: 100%;
+    font-size: 1em;
+  }
+  table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+  }
+  th, td {
+    white-space: nowrap;
+  }
+  #generatedOutput {
+    height: 120px;
+  }
+  .result p {
+    word-break: break-word;
+  }
+}
+
   </style>
 </head>
 <body>
