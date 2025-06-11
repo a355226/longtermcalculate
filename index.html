@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>長照服務額度試算小工具</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; padding: 2em; background-color: #f8f9fa; }
@@ -66,203 +66,205 @@
   <div id="outputBox">
     <textarea id="generatedOutput" readonly></textarea>
     <button class="btn" onclick="generateSummary()">📋 內容產出</button>
-    <button class="btn" onclick="copyOutput()">📝 一鍵複製</button>
+    <button class="btn" onclick="copyOutput()">🖍️ 一鍵複製</button>
     <div id="copyNotice" style="color: green; margin-top: 0.5em; display: none;">✅ 已複製！</div>
   </div>
 
-  <div class="footer">Designed by Chou</div>
+  <div class="footer">Designed by KJ</div>
 
-<script>
-  const services = {
-    "BA01": 260, "BA02": 195, "BA03": 35, "BA04": 130, "BA05": 310,
-    "BA07": 325, "BA10": 155, "BA11": 195, "BA12": 130, "BA13": 195,
-    "BA14": 685, "BA15": 195, "BA16": 130, 
-    "BA17a": 75, "BA17b": 65, "BA17c": 50, "BA17d1": 50, "BA17d2": 50,
-    "BA17e": 50, "BA18": 200, "BA20": 175, "BA22": 130, "BA23": 200,
-    "BA24": 220, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自行輸入": 0
-  };
+  <script>
+    const services = {
+      "BA01": 260, "BA02": 195, "BA03": 35, "BA04": 130, "BA05": 310,
+      "BA07": 325, "BA10": 155, "BA11": 195, "BA12": 130, "BA13": 195,
+      "BA14": 685, "BA15": 195, "BA16": 130,
+      "BA17a": 75, "BA17b": 65, "BA17c": 50, "BA17d1": 50, "BA17d2": 50,
+      "BA17e": 50, "BA18": 200, "BA20": 175, "BA22": 130, "BA23": 200,
+      "BA24": 220, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自行輸入": 0
+    };
 
-  const serviceOrder = Object.keys(services).filter(k => k.startsWith("BA"))
-    .concat(Object.keys(services).filter(k => k.startsWith("GA")))
-    .concat(Object.keys(services).filter(k => k.startsWith("SC")))
-    .concat(["C碼(單次)", "自行輸入"]);
+    const serviceOrder = Object.keys(services).filter(k => k.startsWith("BA"))
+      .concat(Object.keys(services).filter(k => k.startsWith("GA")))
+      .concat(Object.keys(services).filter(k => k.startsWith("SC")))
+      .concat(["C碼(單次)", "自行輸入"]);
 
-  function sumGroup(arr, priceMap) {
-    return arr.reduce((sum, item) => {
-      const match = item.match(/\*(\d+)/);
-      const count = match ? parseInt(match[1]) : 1;
-      const name = item.split("*")[0];
-      return sum + (priceMap[name] || 0) * count;
-    }, 0);
-  }
-
-  function generateSummary() {
-    const groups = calculate(true);
-    let result = [];
-    if (groups.BA.length) result.push(groups.BA.join(",") + "," + sumGroup(groups.BA, groups.priceMap));
-    if (groups.GA.length || groups.SC.length) {
-      const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, groups.priceMap) : "";
-      const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, groups.priceMap) : "";
-      result.push([ga, sc].filter(Boolean).join(" ; "));
+    function sumGroup(arr, priceMap) {
+      return arr.reduce((sum, item) => {
+        const match = item.match(/\*(\d+)/);
+        const count = match ? parseInt(match[1]) : 1;
+        const name = item.split("*")[0];
+        return sum + (priceMap[name] || 0) * count;
+      }, 0);
     }
-    if (groups.other.length) result.push(groups.other.join(",") + "," + sumGroup(groups.other, groups.priceMap));
-    document.querySelector("#generatedOutput").value = result.join("\n");
-  }
 
-  function calculate(returnGroup = false) {
-    const rows = document.querySelectorAll("#serviceTable tbody tr");
-    let total = 0, copay = 0;
-    let outputGroups = { BA: [], GA: [], SC: [], other: [], priceMap: {} };
+    function generateSummary() {
+      const groups = calculate(true);
+      let result = [];
+      if (groups.BA.length) result.push(groups.BA.join(",") + "," + sumGroup(groups.BA, groups.priceMap));
+      if (groups.GA.length || groups.SC.length) {
+        const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, groups.priceMap) : "";
+        const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, groups.priceMap) : "";
+        result.push([ga, sc].filter(Boolean).join(" ; "));
+      }
+      if (groups.other.length) result.push(groups.other.join(",") + "," + sumGroup(groups.other, groups.priceMap));
+      document.querySelector("#generatedOutput").value = result.join("\n");
+    }
 
-    rows.forEach(row => {
-      const select = row.querySelector("select");
-      const serviceCode = select.value;
-      const nameInput = row.querySelector(".custom-name");
-      const name = nameInput ? nameInput.value : serviceCode;
-      const price = parseInt(row.querySelector(".price-input").value || 0);
-      const count = parseInt(row.querySelector(".count-input").value || 0);
-      const subtotal = price * count;
-      row.cells[3].textContent = subtotal;
-      total += subtotal;
-      copay += Math.floor(price * 0.16) * count;
-      const item = `${name}*${count}`;
-      outputGroups.priceMap[name] = price;
-      if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") outputGroups.BA.push(item);
-      else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
-      else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
-      else outputGroups.other.push(item);
-    });
+    function calculate(returnGroup = false) {
+      const rows = document.querySelectorAll("#serviceTable tbody tr");
+      let total = 0, copayTotal = 0;
+      const subsidyRate = parseFloat(document.querySelector("#subsidyRate").value);
+      let outputGroups = { BA: [], GA: [], SC: [], other: [], priceMap: {} };
 
-    const subsidyRate = parseFloat(document.querySelector("#subsidyRate").value);
-    const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
-    const hasExtraCare = document.querySelector("#extraCare").checked;
-    const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
-    const remaining = finalQuota - total;
+      rows.forEach(row => {
+        const select = row.querySelector("select");
+        const serviceCode = select.value;
+        const nameInput = row.querySelector(".custom-name");
+        const name = nameInput ? nameInput.value : serviceCode;
+        const price = parseInt(row.querySelector(".price-input").value || 0);
+        const count = parseInt(row.querySelector(".count-input").value || 0);
+        const subtotal = price * count;
+        row.cells[3].textContent = subtotal;
+        total += subtotal;
 
-    document.querySelector("#totalCost").textContent = total;
-    document.querySelector("#copayAmount").textContent = copay;
-    document.querySelector("#subsidyAmount").textContent = total - copay;
-    const remainEl = document.querySelector("#remainingQuota");
-    remainEl.textContent = remaining;
-    remainEl.className = remaining >= 0 ? "blue" : "red";
+        const perItemCopay = Math.floor(price * subsidyRate);
+        copayTotal += perItemCopay * count;
 
-    return outputGroups;
-  }
+        const item = `${name}*${count}`;
+        outputGroups.priceMap[name] = price;
+        if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") outputGroups.BA.push(item);
+        else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
+        else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
+        else outputGroups.other.push(item);
+      });
 
-  function clearAll() {
-    document.querySelector("#serviceTable tbody").innerHTML = "";
-    calculate();
-  }
+      const subsidy = total - copayTotal;
+      const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
+      const hasExtraCare = document.querySelector("#extraCare").checked;
+      const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
+      const remaining = finalQuota - total;
 
-  function addRow() {
-    const tbody = document.querySelector("#serviceTable tbody");
-    const row = document.createElement("tr");
+      document.querySelector("#totalCost").textContent = total;
+      document.querySelector("#copayAmount").textContent = copayTotal;
+      document.querySelector("#subsidyAmount").textContent = subsidy;
+      const remainEl = document.querySelector("#remainingQuota");
+      remainEl.textContent = remaining;
+      remainEl.className = remaining >= 0 ? "blue" : "red";
 
-    const serviceCell = document.createElement("td");
-    const select = document.createElement("select");
-    serviceOrder.forEach(key => {
-      const option = document.createElement("option");
-      option.value = key;
-      option.textContent = key;
-      select.appendChild(option);
-    });
+      return outputGroups;
+    }
 
-    select.onchange = () => {
-      const priceInput = row.querySelector(".price-input");
-      const customInput = row.querySelector(".custom-name");
-      if (select.value === "自行輸入") {
-        if (!customInput) {
-          const input = document.createElement("input");
-          input.type = "text";
-          input.className = "custom-name";
-          input.placeholder = "項目名稱";
-          serviceCell.appendChild(input);
+    function clearAll() {
+      document.querySelector("#serviceTable tbody").innerHTML = "";
+      calculate();
+    }
+
+    function addRow() {
+      const tbody = document.querySelector("#serviceTable tbody");
+      const row = document.createElement("tr");
+
+      const serviceCell = document.createElement("td");
+      const select = document.createElement("select");
+      serviceOrder.forEach(key => {
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = key;
+        select.appendChild(option);
+      });
+
+      select.onchange = () => {
+        const priceInput = row.querySelector(".price-input");
+        const customInput = row.querySelector(".custom-name");
+        if (select.value === "自行輸入") {
+          if (!customInput) {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "custom-name";
+            input.placeholder = "項目名稱";
+            serviceCell.appendChild(input);
+          }
+          priceInput.readOnly = false;
+        } else {
+          if (customInput) customInput.remove();
+          priceInput.value = services[select.value];
+          priceInput.readOnly = true;
         }
-        priceInput.readOnly = false;
-      } else {
-        if (customInput) customInput.remove();
-        priceInput.value = services[select.value];
-        priceInput.readOnly = true;
-      }
-      calculate();
-    };
-    serviceCell.appendChild(select);
-    row.appendChild(serviceCell);
-
-    const priceCell = document.createElement("td");
-    const priceInput = document.createElement("input");
-    priceInput.type = "number";
-    priceInput.className = "price-input";
-    priceInput.value = services[select.value];
-    priceInput.readOnly = true;
-    priceInput.oninput = calculate;
-    priceCell.appendChild(priceInput);
-    row.appendChild(priceCell);
-
-    const countCell = document.createElement("td");
-    const wrapper = document.createElement("div");
-    wrapper.className = "counter-controls";
-
-    const minusBtn = document.createElement("button");
-    minusBtn.textContent = "-";
-    minusBtn.onclick = () => {
-      if (countInput.value > 0) {
-        countInput.value--;
         calculate();
-      }
-    };
-    const countInput = document.createElement("input");
-    countInput.type = "number";
-    countInput.className = "count-input";
-    countInput.min = 0;
-    countInput.value = 1;
-    countInput.oninput = calculate;
+      };
+      serviceCell.appendChild(select);
+      row.appendChild(serviceCell);
 
-    const plusBtn = document.createElement("button");
-    plusBtn.textContent = "+";
-    plusBtn.onclick = () => {
-      countInput.value++;
+      const priceCell = document.createElement("td");
+      const priceInput = document.createElement("input");
+      priceInput.type = "number";
+      priceInput.className = "price-input";
+      priceInput.value = services[select.value];
+      priceInput.readOnly = true;
+      priceInput.oninput = calculate;
+      priceCell.appendChild(priceInput);
+      row.appendChild(priceCell);
+
+      const countCell = document.createElement("td");
+      const wrapper = document.createElement("div");
+      wrapper.className = "counter-controls";
+
+      const minusBtn = document.createElement("button");
+      minusBtn.textContent = "-";
+      minusBtn.onclick = () => {
+        if (countInput.value > 0) {
+          countInput.value--;
+          calculate();
+        }
+      };
+      const countInput = document.createElement("input");
+      countInput.type = "number";
+      countInput.className = "count-input";
+      countInput.min = 0;
+      countInput.value = 1;
+      countInput.oninput = calculate;
+
+      const plusBtn = document.createElement("button");
+      plusBtn.textContent = "+";
+      plusBtn.onclick = () => {
+        countInput.value++;
+        calculate();
+      };
+
+      wrapper.appendChild(minusBtn);
+      wrapper.appendChild(countInput);
+      wrapper.appendChild(plusBtn);
+      countCell.appendChild(wrapper);
+      row.appendChild(countCell);
+
+      const subtotalCell = document.createElement("td");
+      subtotalCell.textContent = services[select.value];
+      row.appendChild(subtotalCell);
+
+      const deleteCell = document.createElement("td");
+      const deleteBtn = document.createElement("span");
+      deleteBtn.textContent = "🗑️";
+      deleteBtn.className = "delete-btn";
+      deleteBtn.onclick = () => {
+        row.remove();
+        calculate();
+      };
+      deleteCell.appendChild(deleteBtn);
+      row.appendChild(deleteCell);
+
+      tbody.appendChild(row);
       calculate();
-    };
+    }
 
-    wrapper.appendChild(minusBtn);
-    wrapper.appendChild(countInput);
-    wrapper.appendChild(plusBtn);
-    countCell.appendChild(wrapper);
-    row.appendChild(countCell);
+    function copyOutput() {
+      const output = document.querySelector("#generatedOutput");
+      output.select();
+      output.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      const notice = document.querySelector("#copyNotice");
+      notice.style.display = "block";
+      setTimeout(() => { notice.style.display = "none"; }, 3000);
+    }
 
-    const subtotalCell = document.createElement("td");
-    subtotalCell.textContent = services[select.value];
-    row.appendChild(subtotalCell);
-
-    const deleteCell = document.createElement("td");
-    const deleteBtn = document.createElement("span");
-    deleteBtn.textContent = "🗑️";
-    deleteBtn.className = "delete-btn";
-    deleteBtn.onclick = () => {
-      row.remove();
-      calculate();
-    };
-    deleteCell.appendChild(deleteBtn);
-    row.appendChild(deleteCell);
-
-    tbody.appendChild(row);
-    calculate();
-  }
-
-  function copyOutput() {
-    const output = document.querySelector("#generatedOutput");
-    output.select();
-    output.setSelectionRange(0, 99999);
-    document.execCommand("copy");
-
-    const notice = document.querySelector("#copyNotice");
-    notice.style.display = "block";
-    setTimeout(() => { notice.style.display = "none"; }, 3000);
-  }
-
-  window.onload = () => addRow();
-</script>
+    window.onload = () => addRow();
+  </script>
 </body>
 </html>
-
