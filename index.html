@@ -78,11 +78,12 @@ input[type="number"], input[type="text"] {
     align-items: center;
   }
 
-  .counter-controls button {
-    font-size: 0.75em;
-    padding: 2px 6px;
-    margin: 1px 0;
-  }
+ .counter-controls button {
+  font-size: 1.2em;
+  padding: 0px 12px;
+  margin: 2px 0;
+  border-radius: 4px;
+}
 
   #generatedOutput {
     height: 120px;
@@ -312,6 +313,8 @@ if (select.value === "自行輸入") {
       const priceInput = document.createElement("input");
       priceInput.type = "number";
       priceInput.className = "price-input";
+		priceInput.inputMode = "numeric";
+priceInput.pattern = "[0-9]*";
       priceInput.value = services[select.value];
       priceInput.readOnly = true;
       priceInput.oninput = calculate;
@@ -333,6 +336,8 @@ if (select.value === "自行輸入") {
       const countInput = document.createElement("input");
       countInput.type = "number";
       countInput.className = "count-input";
+		countInput.inputMode = "numeric";
+countInput.pattern = "[0-9]*";
       countInput.min = 0;
       countInput.value = 1;
 countInput.onfocus = () => countInput.select();
