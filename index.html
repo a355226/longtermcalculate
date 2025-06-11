@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>長照服務額度試算小工具</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; padding: 2em; background-color: #f8f9fa; }
+    h2 { text-align: center; color: #333; }
+    #actions { display: flex; justify-content: space-between; margin-bottom: 1em; }
+    .btn { padding: 0.5em 1em; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .btn:hover { background-color: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
+    input[type="number"], input[type="text"] { width: 60px; text-align: center; }
+    .result { margin-top: 2em; font-size: 1.1em; }
+    .blue { color: #007bff; } .red { color: #dc3545; }
+    #outputBox { margin-top: 3em; }
+    #generatedOutput { width: 100%; height: 100px; margin-bottom: 1em; }
+    .delete-btn { cursor: pointer; color: #dc3545; font-weight: bold; font-size: 1.2em; }
+    .footer { margin-top: 3em; text-align: right; font-size: 0.8em; color: #aaa; font-family: "Courier New", cursive; }
+    .counter-controls button { padding: 0 8px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>🧮 長照服務額度試算小工具</h2>
+  <div id="actions">
+    <button class="btn" onclick="addRow()">➕ 新增欄位</button>
+    <button class="btn" onclick="clearAll()">🗑️ 全部清除</button>
+  </div>
+
+  <table id="serviceTable">
+    <thead>
+      <tr>
+        <th>服務項目</th><th>單次費用（元）</th><th>使用次數</th><th>小計（元）</th><th>刪除</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="result">
+    <p>💰 <strong>服務總金額：</strong><span id="totalCost">0</span> 元</p>
+    <label>政府補助比例：
+      <select id="subsidyRate" onchange="calculate()">
+        <option value="0.16" selected>84%（一般戶）</option>
+        <option value="0.05">95%（中低收入戶）</option>
+        <option value="0">100%（低收入戶）</option>
+      </select>
+    </label>
+    <br><br>
+    <label>長照失能等級：
+      <select id="disabilityLevel" onchange="calculate()">
+        <option value="10020">2 級</option><option value="15460">3 級</option><option value="18580">4 級</option>
+        <option value="24100">5 級</option><option value="28070">6 級</option><option value="32090">7 級</option><option value="36180">8 級</option>
+      </select>
+    </label>
+    <label style="margin-left: 1em;">
+      <input type="checkbox" id="extraCare" onchange="calculate()"> 有外看
+    </label>
+
+    <p>🧍 <strong>民眾自付金額：</strong><span id="copayAmount">0</span> 元</p>
+    <p>🏛️ <strong>政府補助金額：</strong><span id="subsidyAmount">0</span> 元</p>
+    <p>💵 <strong>剩餘額度：</strong><span id="remainingQuota" class="blue">0</span> 元</p>
+  </div>
+
+  <div id="outputBox">
+    <textarea id="generatedOutput" readonly></textarea>
+    <button class="btn" onclick="generateSummary()">📋 內容產出</button>
+    <button class="btn" onclick="copyOutput()">📝 一鍵複製</button>
+    <div id="copyNotice" style="color: green; margin-top: 0.5em; display: none;">✅ 已複製！</div>
+  </div>
+
+  <div class="footer">Designed by Chou</div>
+
+<script>
+  const services = {
+    "BA01": 260, "BA02": 195, "BA03": 35, "BA04": 130, "BA05-1": 310,
+    "BA07": 325, "BA10": 155, "BA11": 195, "BA12": 130, "BA13": 195,
+    "BA14": 685, "BA15-1": 195, "BA15-2": 195, "BA16-1": 130, "BA16-2": 130,
+    "BA17a": 75, "BA17b": 65, "BA17c": 50, "BA17d1": 50, "BA17d2": 50,
+    "BA17e": 50, "BA18": 200, "BA20": 175, "BA22": 130, "BA23": 200,
+    "BA24": 220, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自行輸入": 0
+  };
+
+  const serviceOrder = Object.keys(services).filter(k => k.startsWith("BA"))
+    .concat(Object.keys(services).filter(k => k.startsWith("GA")))
+    .concat(Object.keys(services).filter(k => k.startsWith("SC")))
+    .concat(["C碼(單次)", "自行輸入"]);
+
+  function sumGroup(arr, priceMap) {
+    return arr.reduce((sum, item) => {
+      const match = item.match(/\*(\d+)/);
+      const count = match ? parseInt(match[1]) : 1;
+      const name = item.split("*")[0];
+      return sum + (priceMap[name] || 0) * count;
+    }, 0);
+  }
+
+  function generateSummary() {
+    const groups = calculate(true);
+    let result = [];
+    if (groups.BA.length) result.push(groups.BA.join(",") + "," + sumGroup(groups.BA, groups.priceMap));
+    if (groups.GA.length || groups.SC.length) {
+      const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, groups.priceMap) : "";
+      const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, groups.priceMap) : "";
+      result.push([ga, sc].filter(Boolean).join(" ; "));
+    }
+    if (groups.other.length) result.push(groups.other.join(",") + "," + sumGroup(groups.other, groups.priceMap));
+    document.querySelector("#generatedOutput").value = result.join("\n");
+  }
+
+  function calculate(returnGroup = false) {
+    const rows = document.querySelectorAll("#serviceTable tbody tr");
+    let total = 0, copay = 0;
+    let outputGroups = { BA: [], GA: [], SC: [], other: [], priceMap: {} };
+
+    rows.forEach(row => {
+      const select = row.querySelector("select");
+      const serviceCode = select.value;
+      const nameInput = row.querySelector(".custom-name");
+      const name = nameInput ? nameInput.value : serviceCode;
+      const price = parseInt(row.querySelector(".price-input").value || 0);
+      const count = parseInt(row.querySelector(".count-input").value || 0);
+      const subtotal = price * count;
+      row.cells[3].textContent = subtotal;
+      total += subtotal;
+      copay += Math.floor(price * 0.16) * count;
+      const item = `${name}*${count}`;
+      outputGroups.priceMap[name] = price;
+      if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") outputGroups.BA.push(item);
+      else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
+      else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
+      else outputGroups.other.push(item);
+    });
+
+    const subsidyRate = parseFloat(document.querySelector("#subsidyRate").value);
+    const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
+    const hasExtraCare = document.querySelector("#extraCare").checked;
+    const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
+    const remaining = finalQuota - total;
+
+    document.querySelector("#totalCost").textContent = total;
+    document.querySelector("#copayAmount").textContent = copay;
+    document.querySelector("#subsidyAmount").textContent = total - copay;
+    const remainEl = document.querySelector("#remainingQuota");
+    remainEl.textContent = remaining;
+    remainEl.className = remaining >= 0 ? "blue" : "red";
+
+    return outputGroups;
+  }
+
+  function clearAll() {
+    document.querySelector("#serviceTable tbody").innerHTML = "";
+    calculate();
+  }
+
+  function addRow() {
+    const tbody = document.querySelector("#serviceTable tbody");
+    const row = document.createElement("tr");
+
+    const serviceCell = document.createElement("td");
+    const select = document.createElement("select");
+    serviceOrder.forEach(key => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = key;
+      select.appendChild(option);
+    });
+
+    select.onchange = () => {
+      const priceInput = row.querySelector(".price-input");
+      const customInput = row.querySelector(".custom-name");
+      if (select.value === "自行輸入") {
+        if (!customInput) {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "custom-name";
+          input.placeholder = "項目名稱";
+          serviceCell.appendChild(input);
+        }
+        priceInput.readOnly = false;
+      } else {
+        if (customInput) customInput.remove();
+        priceInput.value = services[select.value];
+        priceInput.readOnly = true;
+      }
+      calculate();
+    };
+    serviceCell.appendChild(select);
+    row.appendChild(serviceCell);
+
+    const priceCell = document.createElement("td");
+    const priceInput = document.createElement("input");
+    priceInput.type = "number";
+    priceInput.className = "price-input";
+    priceInput.value = services[select.value];
+    priceInput.readOnly = true;
+    priceInput.oninput = calculate;
+    priceCell.appendChild(priceInput);
+    row.appendChild(priceCell);
+
+    const countCell = document.createElement("td");
+    const wrapper = document.createElement("div");
+    wrapper.className = "counter-controls";
+
+    const minusBtn = document.createElement("button");
+    minusBtn.textContent = "-";
+    minusBtn.onclick = () => {
+      if (countInput.value > 0) {
+        countInput.value--;
+        calculate();
+      }
+    };
+    const countInput = document.createElement("input");
+    countInput.type = "number";
+    countInput.className = "count-input";
+    countInput.min = 0;
+    countInput.value = 1;
+    countInput.oninput = calculate;
+
+    const plusBtn = document.createElement("button");
+    plusBtn.textContent = "+";
+    plusBtn.onclick = () => {
+      countInput.value++;
+      calculate();
+    };
+
+    wrapper.appendChild(minusBtn);
+    wrapper.appendChild(countInput);
+    wrapper.appendChild(plusBtn);
+    countCell.appendChild(wrapper);
+    row.appendChild(countCell);
+
+    const subtotalCell = document.createElement("td");
+    subtotalCell.textContent = services[select.value];
+    row.appendChild(subtotalCell);
+
+    const deleteCell = document.createElement("td");
+    const deleteBtn = document.createElement("span");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.className = "delete-btn";
+    deleteBtn.onclick = () => {
+      row.remove();
+      calculate();
+    };
+    deleteCell.appendChild(deleteBtn);
+    row.appendChild(deleteCell);
+
+    tbody.appendChild(row);
+    calculate();
+  }
+
+  function copyOutput() {
+    const output = document.querySelector("#generatedOutput");
+    output.select();
+    output.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+
+    const notice = document.querySelector("#copyNotice");
+    notice.style.display = "block";
+    setTimeout(() => { notice.style.display = "none"; }, 3000);
+  }
+
+  window.onload = () => addRow();
+</script>
+</body>
+</html>
+
