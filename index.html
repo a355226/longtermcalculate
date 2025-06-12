@@ -624,6 +624,76 @@ document.addEventListener('touchend', function (e) {
   }
   lastTouch = now;
 }, { passive: false });
+
+	function addRow() {
+  const tbody = document.querySelector("#serviceTable tbody");
+  const row = document.createElement("tr");
+
+  // 建立 select 選單
+  const serviceCell = document.createElement("td");
+  const select = document.createElement("select");
+  serviceOrder.forEach(key => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = key;
+    select.appendChild(option);
+  });
+
+  // 建立價格輸入框
+  const priceCell = document.createElement("td");
+  const priceInput = document.createElement("input");
+  priceInput.type = "number";
+  priceInput.className = "price-input";
+  priceInput.value = services[select.value] || 0;
+  priceInput.readOnly = true;
+  priceCell.appendChild(priceInput);
+
+  // 建立次數欄（含加減按鈕）
+  const countCell = document.createElement("td");
+  const countInput = document.createElement("input");
+  countInput.type = "number";
+  countInput.className = "count-input";
+  countInput.value = 1;
+  countInput.min = 0;
+  countCell.appendChild(countInput);
+
+  // 小計欄
+  const subtotalCell = document.createElement("td");
+  subtotalCell.textContent = priceInput.value;
+
+  // 刪除按鈕
+  const deleteCell = document.createElement("td");
+  const deleteBtn = document.createElement("span");
+  deleteBtn.textContent = "🗑️";
+  deleteBtn.className = "delete-btn";
+  deleteBtn.onclick = () => {
+    row.remove();
+    calculate();
+  };
+  deleteCell.appendChild(deleteBtn);
+
+  // select 變動更新價格
+  select.onchange = () => {
+    priceInput.value = services[select.value] || 0;
+    priceInput.readOnly = select.value !== "自行輸入";
+    calculate();
+  };
+
+  serviceCell.appendChild(select);
+  row.appendChild(serviceCell);
+  row.appendChild(priceCell);
+  row.appendChild(countCell);
+  row.appendChild(subtotalCell);
+  row.appendChild(deleteCell);
+  tbody.appendChild(row);
+
+  calculate();
+}
+window.onload = () => {
+  document.getElementById("addRowBtn").addEventListener("click", addRow);
+  addRow(); // 初始就新增一列
+};
+
   </script>
 </body>
 </html>
