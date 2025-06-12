@@ -117,7 +117,7 @@ select {
 <body>
   <h2>🧮 長照服務額度試算小工具</h2>
   <div id="actions">
-    <button class="btn" onclick="addRow()">➕ 新增欄位</button>
+    <button class="btn" id="addRowBtn">➕ 新增欄位</button>
 	<button class="btn" onclick="applyCount()">📌 套用次數</button>
     <button class="btn" onclick="clearAll()">🗑️ 全部清除</button>
   </div>
@@ -490,7 +490,7 @@ document.addEventListener('touchend', function (e) {
   }
   lastTouch = now;
 }, { passive: false });
-
+document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
   </script>
 </body>
 </html>
