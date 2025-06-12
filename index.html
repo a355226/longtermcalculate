@@ -235,17 +235,17 @@ select {
 <div class="result" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1em;">
   <!-- 左側原本資訊 -->
   <div style="flex: 1;">
-    <p>💰 <strong>服務總金額：</strong><span id="totalCost">0</span> 元</p>
+    <p>💰 <strong>服務總額：</strong><span id="totalCost">0</span> 元</p>
     <label>政府補助比例：
-      <select id="subsidyRate" onchange="calculate()">
-        <option value="0.16" selected>84%（一般戶）</option>
-        <option value="0.05">95%（中低收入戶）</option>
-        <option value="0">100%（低收入戶）</option>
+  <select id="subsidyRate" onchange="calculate()" style="width: 9em;">
+        <option value="0.16" selected>84%（一般）</option>
+        <option value="0.05">95%（中低）</option>
+        <option value="0">100%（低收）</option>
       </select>
     </label>
     <br><br>
-    <label>長照失能等級：
-      <select id="disabilityLevel" onchange="calculate()">
+   <label>長照失能等級：
+  <select id="disabilityLevel" onchange="calculate()" style="width: 9em;">
         <option value="10020">2 級</option><option value="15460">3 級</option><option value="18580">4 級</option>
         <option value="24100">5 級</option><option value="28070">6 級</option><option value="32090">7 級</option><option value="36180">8 級</option>
       </select>
@@ -254,13 +254,13 @@ select {
       <input type="checkbox" id="extraCare" onchange="calculate()"> 有外看
     </label>
 
-    <p>🧍 <strong>民眾自付金額：</strong><span id="copayAmount">0</span> 元</p>
-    <p>🏛️ <strong>政府補助金額：</strong><span id="subsidyAmount">0</span> 元</p>
+    <p>🧍 <strong>民眾自付額：</strong><span id="copayAmount">0</span> 元</p>
+    <p>🏛️ <strong>政府補助額：</strong><span id="subsidyAmount">0</span> 元</p>
     <p>💵 <strong>剩餘額度：</strong><span id="remainingQuota" class="blue">0</span> 元</p>
   </div>
 
   <!-- 右側新增記憶選項 -->
-  <fieldset id="memoryFieldset" style="border: 1px solid #ccc; padding: 0.75em 1em; border-radius: 6px; font-size: 0.95em;">
+<fieldset id="memoryFieldset" style="border: 1px solid #ccc; padding: 0.75em 1em; border-radius: 6px; font-size: 0.95em; margin-top: 1.5em;">
     <legend style="font-weight: bold;">🔁切換</legend>
     <label><input type="radio" name="memorySlot" value="1" checked> 記憶1</label><br>
     <label><input type="radio" name="memorySlot" value="2"> 記憶2</label><br>
