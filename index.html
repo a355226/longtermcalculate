@@ -105,7 +105,13 @@ select {
   max-width: 100%;
   box-sizing: border-box;
 }
-	
+  /* ✅ 補強手機點擊體驗 */
+  button,
+  .btn,
+  .counter-controls button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }	
 </style>
 </head>
 <body>
@@ -476,6 +482,16 @@ window.onload = () => {
     shareBtn.style.display = "none";
   }
 };
+// ✅ 防止 iOS 雙擊觸發縮放（保留原字體大小）
+let lastTouch = 0;
+document.addEventListener('touchend', function (e) {
+  const now = new Date().getTime();
+  if (now - lastTouch <= 300) {
+    e.preventDefault(); // 阻止第二次點擊導致縮放
+  }
+  lastTouch = now;
+}, { passive: false });
+
   </script>
 </body>
 </html>
