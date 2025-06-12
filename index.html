@@ -439,36 +439,41 @@ if (baTotal > finalQuota) {
         select.appendChild(option);
       });
 
-      select.onchange = () => {
-        const priceInput = row.querySelector(".price-input");
-        const customInput = row.querySelector(".custom-name");
-if (select.value === "自行輸入") {
-  if (!serviceCell.querySelector(".select-wrapper")) {
+select.onchange = () => {
+  const priceInput = row.querySelector(".price-input");
+  const serviceCode = select.value;
+
+  if (serviceCode === "自行輸入") {
     const wrapper = document.createElement("div");
     wrapper.className = "select-wrapper";
     wrapper.appendChild(select);
 
     const input = document.createElement("input");
-input.type = "text";
-input.className = "custom-name";
-input.placeholder = "項目名稱";
-// ✅ 自動轉成大寫
-input.addEventListener("input", () => {
-  input.value = input.value.toUpperCase();
-});
-wrapper.appendChild(input);
+    input.type = "text";
+    input.className = "custom-name";
+    input.placeholder = "項目名稱";
+    input.addEventListener("input", () => {
+      input.value = input.value.toUpperCase();
+    });
+    wrapper.appendChild(input);
 
     serviceCell.innerHTML = "";
     serviceCell.appendChild(wrapper);
+
+    priceInput.readOnly = false;
+  } else {
+    const existingWrapper = serviceCell.querySelector(".select-wrapper");
+    if (existingWrapper) {
+      serviceCell.innerHTML = "";
+      serviceCell.appendChild(select);
+    }
+    priceInput.value = services[serviceCode];
+    priceInput.readOnly = true;
   }
-  priceInput.readOnly = false;
-        } else {
-          if (customInput) customInput.remove();
-          priceInput.value = services[select.value];
-          priceInput.readOnly = true;
-        }
-        calculate();
-      };
+
+  calculate();
+};
+
       serviceCell.appendChild(select);
       row.appendChild(serviceCell);
 
@@ -651,5 +656,7 @@ document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
   </script>
 </body>
 </html>
+
+
 
 
