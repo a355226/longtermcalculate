@@ -324,10 +324,30 @@ if (groups.BA.length) {
 
   const sortedBA = systemBA.concat(customBA); // 系統項目前面，自行輸入在後
 
+if (groups.BA.length) {
+  const baItems = groups.BA.slice();
+
+  // 拆出 BA 系統項目與「自行輸入」
+  const systemBA = baItems.filter(item => {
+    const code = item.split("*")[0];
+    return code !== "自行輸入";
+  });
+  const customBA = baItems.filter(item => item.split("*")[0] === "自行輸入");
+
+  // 根據 serviceOrder 中 BA 的順序排序
+  systemBA.sort((a, b) => {
+    const codeA = a.split("*")[0];
+    const codeB = b.split("*")[0];
+    return serviceOrder.indexOf(codeA) - serviceOrder.indexOf(codeB);
+  });
+
+  const sortedBA = systemBA.concat(customBA); // 系統BA在前，自行輸入在後
+
   let line = sortedBA.join(",") + "," + sumGroup(sortedBA, groups.priceMap);
   if (caseName) line = caseName + "：" + line;
   result.push(line);
 }
+
 
   if (groups.GA.length || groups.SC.length) {
     const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, groups.priceMap) : "";
