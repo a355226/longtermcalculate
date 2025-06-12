@@ -157,6 +157,21 @@ select {
     <button class="btn" onclick="generateSummary()">📋 內容產出</button>
     <button class="btn" onclick="copyOutput()">🖍️ 一鍵複製</button>
     <div id="copyNotice" style="color: green; margin-top: 0.5em; display: none;">✅ 已複製！</div>
+<div style="margin-top: 0.5em;">
+  <button class="btn" onclick="shareToLine()">📤 分享</button>
+  <a href="https://drive.google.com/uc?export=view&id=1OPgEQKuQHgJh-86IDF-lEr1rtT0vzLCo" target="_blank" style="margin-left: 1em; font-size: 0.9em;">📄 項目及費用一覽表</a>
+</div>
+
+<!-- 套用次數輸入彈窗 -->
+<div id="countOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999;">
+  <div style="background: white; padding: 1em; max-width: 300px; margin: 20% auto; border-radius: 8px; text-align: center;">
+    <p>請輸入要套用的次數：</p>
+    <input id="countValue" type="number" inputmode="numeric" pattern="[0-9]*" min="0" style="width: 100%; padding: 0.5em; margin-bottom: 1em;" />
+    <button class="btn" onclick="confirmApplyCount()">確認套用</button>
+    <button class="btn" onclick="closeCountOverlay()" style="background-color: #ccc; margin-left: 0.5em;">取消</button>
+  </div>
+</div>
+
   </div>
 
   <div class="footer">Designed by KJ</div>
@@ -400,6 +415,69 @@ countInput.onfocus = () => countInput.select();
 }
 
     window.onload = () => addRow();
+
+    // 以下是新增功能函式（請直接貼上）
+    function applyCount() {
+      document.getElementById("countOverlay").style.display = "block";
+      document.getElementById("countValue").focus();
+    }
+
+    function confirmApplyCount() {
+      const value = document.getElementById("countValue").value;
+      const num = parseInt(value);
+      if (isNaN(num) || num < 0) {
+        alert("請輸入有效的正整數。");
+        return;
+      }
+
+      document.querySelectorAll(".count-input").forEach(input => {
+        input.value = num;
+      });
+
+      closeCountOverlay();
+      calculate();
+    }
+
+    function closeCountOverlay() {
+      document.getElementById("countOverlay").style.display = "none";
+      document.getElementById("countValue").value = "";
+    }
+
+// ✅ 使用手機原生分享功能（Web Share API）
+function shareToLine() {
+  const text = document.querySelector("#generatedOutput").value.trim();
+  if (!text) {
+    alert("請先產出內容！");
+    return;
+  }
+
+  if (navigator.share) {
+    navigator.share({
+      title: "長照服務試算內容",
+      text: text
+    }).catch(err => {
+      console.error("分享取消或失敗", err);
+    });
+  } else {
+    alert("您的裝置不支援原生分享功能。");
+  }
+}
+
+// ✅ 判斷是否為手機裝置 + 支援 Web Share，決定是否顯示分享按鈕
+window.onload = () => {
+  addRow(); // 原本的功能
+
+  // 👉 加入裝置偵測判斷是否隱藏分享按鈕
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  const shareSupported = typeof navigator.share === "function";
+
+  const shareBtn = document.getElementById("shareBtn");
+  if (shareBtn && (!isMobile || !shareSupported)) {
+    shareBtn.style.display = "none";
+  }
+};
   </script>
 </body>
 </html>
+
+
