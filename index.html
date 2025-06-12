@@ -313,6 +313,11 @@ function generateSummary() {
       const code = item.split("*")[0];
       return !(code in services);
     });
+	const standardItems = groups.BA.filter(item => {
+  const code = item.split("*")[0];
+  return code in services;
+});
+
 standardItems.sort((a, b) => {
   const codeA = a.split("*")[0];
   const codeB = b.split("*")[0];
