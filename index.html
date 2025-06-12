@@ -324,7 +324,10 @@ standardItems.sort((a, b) => {
   return serviceOrder.indexOf(codeA) - serviceOrder.indexOf(codeB);
 });
     let line = "";
-    if (caseName) line += caseName + "：";
+    if (caseName) {
+  const levelText = document.querySelector("#disabilityLevel").selectedOptions[0].textContent;
+  line += `${caseName}（${levelText}）：`;
+}
 
     if (customItems.length) line += customItems.join(";") + (standardItems.length ? ";" : "");
     if (standardItems.length) line += standardItems.join(",");
@@ -640,6 +643,5 @@ document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
   </script>
 </body>
 </html>
-
 
 
