@@ -517,17 +517,25 @@ plusBtn.addEventListener("pointerdown", () => {
     window.onload = () => addRow();
 
     // 以下是新增功能函式（請直接貼上）
-    function applyCount() {
-      document.getElementById("countOverlay").style.display = "block";
-const input = document.getElementById("countValue");
+let hasBoundEnter = false;
 
-input.addEventListener("keyup", function(e) {
-  if (e.key === "Enter") {
-    confirmApplyCount();
+function applyCount() {
+  document.getElementById("countOverlay").style.display = "block";
+  const input = document.getElementById("countValue");
+
+  // 只綁定一次 Enter 鍵事件
+  if (!hasBoundEnter) {
+    input.addEventListener("keyup", function(e) {
+      if (e.key === "Enter") {
+        confirmApplyCount();
+      }
+    });
+    hasBoundEnter = true;
   }
-});
 
-    }
+  input.focus(); // 自動聚焦輸入框
+}
+
 
     function confirmApplyCount() {
       const value = document.getElementById("countValue").value;
