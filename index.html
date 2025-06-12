@@ -424,12 +424,14 @@ plusBtn.addEventListener("pointerdown", () => {
     // 以下是新增功能函式（請直接貼上）
     function applyCount() {
       document.getElementById("countOverlay").style.display = "block";
-      document.getElementById("countValue").focus();
-	    document.getElementById("countValue").addEventListener("keydown", function(e) {
+const input = document.getElementById("countValue");
+
+input.addEventListener("keyup", function(e) {
   if (e.key === "Enter") {
     confirmApplyCount();
   }
 });
+
     }
 
     function confirmApplyCount() {
