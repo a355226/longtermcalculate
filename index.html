@@ -615,6 +615,9 @@ function shareToLine() {
 window.onload = () => {
   addRow(); // 原本的功能
 
+  // ✅ 加上這行：綁定新增欄位按鈕
+  document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
+
   // 👉 加入裝置偵測判斷是否隱藏分享按鈕
   const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
   const shareSupported = typeof navigator.share === "function";
@@ -624,6 +627,7 @@ window.onload = () => {
     shareBtn.style.display = "none";
   }
 };
+
 // ✅ 防止 iOS 雙擊觸發縮放（保留原字體大小）
 let lastTouch = 0;
 document.addEventListener('touchend', function (e) {
