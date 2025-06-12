@@ -303,46 +303,44 @@ select {
 
 function generateSummary() {
   const groups = calculate(true);
-  let result = [];
   const caseName = document.querySelector("#caseName").value.trim();
+  const priceMap = groups.priceMap;
+  let result = [];
 
-  // ✅ 將 BA 類型拆成兩群：一群是 "自行輸入"，一群是 正式代碼（BA01~）
-  const customBA = groups.BA.filter(item => item.split("*")[0] === "自行輸入");
-  const regularBA = groups.BA.filter(item => item.split("*")[0] !== "自行輸入");
-
-  // ✅ 排序正式 BA 項目（BA01 → BA02 → …）
-  const sortedBA = regularBA.slice().sort((a, b) => {
-    const codeA = a.split("*")[0];
-    const codeB = b.split("*")[0];
-    const numA = parseInt(codeA.replace(/[^\d]/g, '')) || 0;
-    const numB = parseInt(codeB.replace(/[^\d]/g, '')) || 0;
-    return numA - numB;
-  });
-
+  // ✅ 處理 BA 區塊
   if (groups.BA.length) {
-    let lineParts = [];
+    const customItems = groups.BA.filter(item => {
+      const code = item.split("*")[0];
+      return !(code in services);
+    });
+    const standardItems = groups.BA.filter(item => {
+      const code = item.split("*")[0];
+      return code in services && code.startsWith("BA");
+    });
 
-    if (customBA.length) lineParts.push(customBA.join(","));
-    if (sortedBA.length) lineParts.push(sortedBA.join(","));
+    let line = "";
+    if (caseName) line += caseName + "：";
 
-    const allBA = lineParts.join(";"); // 以 ; 區隔兩區塊
-    const totalBA = sumGroup(groups.BA, groups.priceMap);
+    if (customItems.length) line += customItems.join(";") + (standardItems.length ? ";" : "");
+    if (standardItems.length) line += standardItems.join(",");
 
-    let line = allBA + "," + totalBA;
-    if (caseName) line = caseName + "：" + line;
+    const baTotal = sumGroup(groups.BA, priceMap);
+    line += "," + baTotal;
+
     result.push(line);
   }
 
+  // ✅ 處理 GA 與 SC 區塊
   if (groups.GA.length || groups.SC.length) {
-    const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, groups.priceMap) : "";
-    const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, groups.priceMap) : "";
+    const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, priceMap) : "";
+    const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, priceMap) : "";
     result.push([ga, sc].filter(Boolean).join(" ; "));
   }
 
+  // ✅ 處理其他項目（如 C碼）
   if (groups.other.length) {
-    let line = groups.other.join(",") + "," + sumGroup(groups.other, groups.priceMap);
-    if (caseName) line = caseName + "," + line;
-    result.push(line);
+    let line = groups.other.join(",") + "," + sumGroup(groups.other, priceMap);
+    result.push(line);  // ❗ 不再加上個案名稱
   }
 
   document.querySelector("#generatedOutput").value = result.join("\n");
