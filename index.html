@@ -304,23 +304,31 @@ select {
 function generateSummary() {
   const groups = calculate(true);
   let result = [];
-
   const caseName = document.querySelector("#caseName").value.trim();
 
-  // ✅ BA 區塊調整排序，自行輸入放最後
+  // ✅ 將 BA 類型拆成兩群：一群是 "自行輸入"，一群是 正式代碼（BA01~）
+  const customBA = groups.BA.filter(item => item.split("*")[0] === "自行輸入");
+  const regularBA = groups.BA.filter(item => item.split("*")[0] !== "自行輸入");
+
+  // ✅ 排序正式 BA 項目（BA01 → BA02 → …）
+  const sortedBA = regularBA.slice().sort((a, b) => {
+    const codeA = a.split("*")[0];
+    const codeB = b.split("*")[0];
+    const numA = parseInt(codeA.replace(/[^\d]/g, '')) || 0;
+    const numB = parseInt(codeB.replace(/[^\d]/g, '')) || 0;
+    return numA - numB;
+  });
+
   if (groups.BA.length) {
-    const baItems = groups.BA.slice();
-    const systemBA = baItems.filter(item => item.split("*")[0] !== "自行輸入");
-    const customBA = baItems.filter(item => item.split("*")[0] === "自行輸入");
+    let lineParts = [];
 
-    systemBA.sort((a, b) => {
-      const codeA = a.split("*")[0];
-      const codeB = b.split("*")[0];
-      return serviceOrder.indexOf(codeA) - serviceOrder.indexOf(codeB);
-    });
+    if (customBA.length) lineParts.push(customBA.join(","));
+    if (sortedBA.length) lineParts.push(sortedBA.join(","));
 
-    const sortedBA = systemBA.concat(customBA);
-    let line = sortedBA.join(",") + "," + sumGroup(sortedBA, groups.priceMap);
+    const allBA = lineParts.join(";"); // 以 ; 區隔兩區塊
+    const totalBA = sumGroup(groups.BA, groups.priceMap);
+
+    let line = allBA + "," + totalBA;
     if (caseName) line = caseName + "：" + line;
     result.push(line);
   }
@@ -339,7 +347,6 @@ function generateSummary() {
 
   document.querySelector("#generatedOutput").value = result.join("\n");
 }
-
 
     function calculate(returnGroup = false) {
   const rows = document.querySelectorAll("#serviceTable tbody tr");
