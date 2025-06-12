@@ -324,8 +324,18 @@ standardItems.sort((a, b) => {
     if (customItems.length) line += customItems.join(";") + (standardItems.length ? ";" : "");
     if (standardItems.length) line += standardItems.join(",");
 
-    const baTotal = sumGroup(groups.BA, priceMap);
-    line += "," + baTotal;
+const baTotal = sumGroup(groups.BA, priceMap);
+line += "," + baTotal;
+
+// ✅ 加入超額判斷與標示
+const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
+const hasExtraCare = document.querySelector("#extraCare").checked;
+const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
+
+if (baTotal > finalQuota) {
+  line += `（超額${baTotal - finalQuota}）`;
+}
+
 
     result.push(line);
   }
