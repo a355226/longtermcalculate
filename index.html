@@ -425,6 +425,11 @@ plusBtn.addEventListener("pointerdown", () => {
     function applyCount() {
       document.getElementById("countOverlay").style.display = "block";
       document.getElementById("countValue").focus();
+	    document.getElementById("countValue").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    confirmApplyCount();
+  }
+});
     }
 
     function confirmApplyCount() {
