@@ -332,10 +332,17 @@ standardItems.sort((a, b) => {
     if (standardItems.length) line += standardItems.join(",");
 
     const baTotal = sumGroup(groups.BA, priceMap);
-    line += "," + baTotal;
+const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
+const hasExtraCare = document.querySelector("#extraCare").checked;
+const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
+const overAmount = baTotal - finalQuota;
 
-    result.push(line);
-  }
+line += "," + baTotal;
+if (overAmount > 0) {
+  line += `（超額${overAmount}）`;
+}
+
+result.push(line);
 
   // ✅ 處理 GA 與 SC 區塊
   if (groups.GA.length || groups.SC.length) {
