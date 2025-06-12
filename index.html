@@ -423,10 +423,14 @@ if (select.value === "自行輸入") {
     wrapper.appendChild(select);
 
     const input = document.createElement("input");
-    input.type = "text";
-    input.className = "custom-name";
-    input.placeholder = "項目名稱";
-    wrapper.appendChild(input);
+input.type = "text";
+input.className = "custom-name";
+input.placeholder = "項目名稱";
+// ✅ 自動轉成大寫
+input.addEventListener("input", () => {
+  input.value = input.value.toUpperCase();
+});
+wrapper.appendChild(input);
 
     serviceCell.innerHTML = "";
     serviceCell.appendChild(wrapper);
