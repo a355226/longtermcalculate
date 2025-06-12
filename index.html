@@ -469,7 +469,18 @@ document.addEventListener('touchend', function (e) {
   }
   lastTouch = now;
 }, { passive: false });
+window.onload = () => {
+  addRow(); // 新增欄位一開始載入時執行
 
+  // 👉 加入裝置偵測判斷是否隱藏分享按鈕
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  const shareSupported = typeof navigator.share === "function";
+
+  const shareBtn = document.querySelector('button[onclick="shareToLine()"]');
+  if (shareBtn && (!isMobile || !shareSupported)) {
+    shareBtn.style.display = "none";
+  }
+};
   </script>
 </body>
 </html>
