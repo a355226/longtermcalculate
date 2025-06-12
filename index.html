@@ -232,7 +232,9 @@ select {
     <tbody></tbody>
   </table>
 
-  <div class="result">
+<div class="result" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1em;">
+  <!-- 左側原本資訊 -->
+  <div style="flex: 1;">
     <p>💰 <strong>服務總金額：</strong><span id="totalCost">0</span> 元</p>
     <label>政府補助比例：
       <select id="subsidyRate" onchange="calculate()">
@@ -257,6 +259,14 @@ select {
     <p>💵 <strong>剩餘額度：</strong><span id="remainingQuota" class="blue">0</span> 元</p>
   </div>
 
+  <!-- 右側新增記憶選項 -->
+  <fieldset id="memoryFieldset" style="border: 1px solid #ccc; padding: 0.75em 1em; border-radius: 6px; font-size: 0.95em;">
+    <legend style="font-weight: bold;">🔁切換</legend>
+    <label><input type="radio" name="memorySlot" value="1" checked> 記憶1</label><br>
+    <label><input type="radio" name="memorySlot" value="2"> 記憶2</label><br>
+    <label><input type="radio" name="memorySlot" value="3"> 記憶3</label>
+  </fieldset>
+</div>
   <div id="outputBox">
 	<label for="caseName">👤 個案：</label>
 <input type="text" id="caseName" placeholder="選填" style="margin-bottom: 0.5em; width: 6em; display: inline-block; margin-right: 1em;">
@@ -653,10 +663,197 @@ document.addEventListener('touchend', function (e) {
   lastTouch = now;
 }, { passive: false });
 document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
+
+const memories = { 1: null, 2: null, 3: null };
+let currentMemory = 1;
+
+function captureState() {
+  const rows = [];
+  document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
+    const select = row.querySelector("select");
+    const serviceCode = select.value;
+    const customName = row.querySelector(".custom-name")?.value || "";
+    const price = parseInt(row.querySelector(".price-input").value || 0);
+    const count = parseInt(row.querySelector(".count-input").value || 0);
+    rows.push({ serviceCode, customName, price, count });
+  });
+
+  return {
+    rows,
+    subsidyRate: document.getElementById("subsidyRate").value,
+    disabilityLevel: document.getElementById("disabilityLevel").value,
+    extraCare: document.getElementById("extraCare").checked,
+    caseName: document.getElementById("caseName").value,
+    generatedOutput: document.getElementById("generatedOutput").value
+  };
+}
+
+function restoreState(state) {
+  document.querySelector("#serviceTable tbody").innerHTML = "";
+
+  state.rows.forEach(data => {
+    const tbody = document.querySelector("#serviceTable tbody");
+    const row = document.createElement("tr");
+
+    const serviceCell = document.createElement("td");
+    const select = document.createElement("select");
+    serviceOrder.forEach(key => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = key;
+      if (key === data.serviceCode) option.selected = true;
+      select.appendChild(option);
+    });
+
+    const priceInput = document.createElement("input");
+    priceInput.type = "number";
+    priceInput.className = "price-input";
+    priceInput.inputMode = "numeric";
+    priceInput.pattern = "[0-9]*";
+    priceInput.value = data.price || services[data.serviceCode] || 0;
+    priceInput.readOnly = (data.serviceCode !== "自行輸入");
+    priceInput.oninput = calculate;
+
+    select.onchange = () => {
+      const newServiceCode = select.value;
+      if (newServiceCode === "自行輸入") {
+        const wrapper = document.createElement("div");
+        wrapper.className = "select-wrapper";
+        wrapper.appendChild(select);
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "custom-name";
+        input.placeholder = "項目名稱";
+        input.value = "";
+        input.addEventListener("input", () => {
+          input.value = input.value.toUpperCase();
+        });
+        wrapper.appendChild(input);
+
+        serviceCell.innerHTML = "";
+        serviceCell.appendChild(wrapper);
+        priceInput.readOnly = false;
+      } else {
+        serviceCell.innerHTML = "";
+        serviceCell.appendChild(select);
+        priceInput.value = services[newServiceCode];
+        priceInput.readOnly = true;
+      }
+      calculate();
+    };
+
+    if (data.serviceCode === "自行輸入") {
+      const wrapper = document.createElement("div");
+      wrapper.className = "select-wrapper";
+      wrapper.appendChild(select);
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "custom-name";
+      input.placeholder = "項目名稱";
+      input.value = data.customName;
+      input.addEventListener("input", () => {
+        input.value = input.value.toUpperCase();
+      });
+      wrapper.appendChild(input);
+      serviceCell.appendChild(wrapper);
+    } else {
+      serviceCell.appendChild(select);
+    }
+    row.appendChild(serviceCell);
+
+    const priceCell = document.createElement("td");
+    priceCell.appendChild(priceInput);
+    row.appendChild(priceCell);
+
+    const countCell = document.createElement("td");
+    const wrapper = document.createElement("div");
+    wrapper.className = "counter-controls";
+
+    const minusBtn = document.createElement("button");
+    minusBtn.textContent = "-";
+    const countInput = document.createElement("input");
+    countInput.type = "number";
+    countInput.className = "count-input";
+    countInput.inputMode = "numeric";
+    countInput.pattern = "[0-9]*";
+    countInput.min = 0;
+    countInput.value = data.count;
+    countInput.oninput = calculate;
+    countInput.onfocus = () => countInput.select();
+    minusBtn.addEventListener("pointerdown", () => {
+      if (countInput.value > 0) {
+        countInput.value--;
+        calculate();
+      }
+    });
+
+    const plusBtn = document.createElement("button");
+    plusBtn.textContent = "+";
+    plusBtn.addEventListener("pointerdown", () => {
+      countInput.value++;
+      calculate();
+    });
+
+    wrapper.appendChild(minusBtn);
+    wrapper.appendChild(countInput);
+    wrapper.appendChild(plusBtn);
+    countCell.appendChild(wrapper);
+    row.appendChild(countCell);
+
+    const subtotalCell = document.createElement("td");
+    row.appendChild(subtotalCell);
+
+    const deleteCell = document.createElement("td");
+    const deleteBtn = document.createElement("span");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.className = "delete-btn";
+    deleteBtn.onclick = () => {
+      row.remove();
+      calculate();
+    };
+    deleteCell.appendChild(deleteBtn);
+    row.appendChild(deleteCell);
+
+    tbody.appendChild(row);
+  });
+
+  document.getElementById("subsidyRate").value = state.subsidyRate;
+  document.getElementById("disabilityLevel").value = state.disabilityLevel;
+  document.getElementById("extraCare").checked = state.extraCare;
+  document.getElementById("caseName").value = state.caseName;
+  document.getElementById("generatedOutput").value = state.generatedOutput;
+
+  calculate();
+}
+
+document.getElementById("memoryFieldset").addEventListener("change", e => {
+  if (e.target.name === "memorySlot") {
+    memories[currentMemory] = captureState();
+    currentMemory = parseInt(e.target.value);
+    if (memories[currentMemory]) {
+      restoreState(memories[currentMemory]);
+    } else {
+      clearAll();
+      document.getElementById("caseName").value = "";
+      document.getElementById("generatedOutput").value = "";
+      calculate();
+    }
+  }
+});
+
+// ✅ 修正 generateSummary 內容，產出後同步更新記憶
+const originalGenerateSummary = generateSummary;
+generateSummary = function () {
+  originalGenerateSummary();
+  memories[currentMemory] = captureState();
+}
+
+// ✅ 初始化記憶1狀態（在 onload 執行後做）
+window.addEventListener("load", () => {
+  memories[1] = captureState();
+});
   </script>
 </body>
 </html>
-
-
-
-
