@@ -346,21 +346,30 @@ priceInput.pattern = "[0-9]*";
       const wrapper = document.createElement("div");
       wrapper.className = "counter-controls";
 
-const minusBtn = document.createElement("button");
-minusBtn.textContent = "-";
-minusBtn.addEventListener("pointerdown", () => {
-  if (countInput.value > 0) {
-    countInput.value--;
-    calculate();
-  }
-});
+      const minusBtn = document.createElement("button");
+      minusBtn.textContent = "-";
+      minusBtn.onclick = () => {
+        if (countInput.value > 0) {
+          countInput.value--;
+          calculate();
+        }
+      };
+      const countInput = document.createElement("input");
+      countInput.type = "number";
+      countInput.className = "count-input";
+		countInput.inputMode = "numeric";
+countInput.pattern = "[0-9]*";
+      countInput.min = 0;
+      countInput.value = 1;
+countInput.onfocus = () => countInput.select();
+      countInput.oninput = calculate;
 
-const plusBtn = document.createElement("button");
-plusBtn.textContent = "+";
-plusBtn.addEventListener("pointerdown", () => {
-  countInput.value++;
-  calculate();
-});
+      const plusBtn = document.createElement("button");
+      plusBtn.textContent = "+";
+      plusBtn.onclick = () => {
+        countInput.value++;
+        calculate();
+      };
 
       wrapper.appendChild(minusBtn);
       wrapper.appendChild(countInput);
@@ -411,6 +420,7 @@ plusBtn.addEventListener("pointerdown", () => {
   calculate();
 }
 
+    window.onload = () => addRow();
 
     // 以下是新增功能函式（請直接貼上）
     function applyCount() {
@@ -459,6 +469,19 @@ function shareToLine() {
   }
 }
 
+// ✅ 判斷是否為手機裝置 + 支援 Web Share，決定是否顯示分享按鈕
+window.onload = () => {
+  addRow(); // 原本的功能
+
+  // 👉 加入裝置偵測判斷是否隱藏分享按鈕
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  const shareSupported = typeof navigator.share === "function";
+
+  const shareBtn = document.getElementById("shareBtn");
+  if (shareBtn && (!isMobile || !shareSupported)) {
+    shareBtn.style.display = "none";
+  }
+};
 // ✅ 防止 iOS 雙擊觸發縮放（保留原字體大小）
 let lastTouch = 0;
 document.addEventListener('touchend', function (e) {
@@ -468,20 +491,10 @@ document.addEventListener('touchend', function (e) {
   }
   lastTouch = now;
 }, { passive: false });
-window.onload = () => {
-  addRow(); // 新增欄位一開始載入時執行
 
-  // 👉 加入裝置偵測判斷是否隱藏分享按鈕
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  const shareSupported = typeof navigator.share === "function";
-
-  const shareBtn = document.querySelector('button[onclick="shareToLine()"]');
-  if (shareBtn && (!isMobile || !shareSupported)) {
-    shareBtn.style.display = "none";
-  }
-};
   </script>
 </body>
 </html>
+
 
 
