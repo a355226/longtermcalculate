@@ -535,20 +535,6 @@ plusBtn.addEventListener("pointerdown", () => {
       notice.style.display = "block";
       setTimeout(() => { notice.style.display = "none"; }, 3000);
     }
-	function applyCount() {
-  const value = prompt("請輸入要套用的次數數字：");
-  const num = parseInt(value);
-  if (isNaN(num) || num < 0) {
-    alert("請輸入有效的正整數。");
-    return;
-  }
-
-  document.querySelectorAll(".count-input").forEach(input => {
-    input.value = num;
-  });
-
-  calculate();
-}
 
     // 以下是新增功能函式（請直接貼上）
 let hasBoundEnter = false;
