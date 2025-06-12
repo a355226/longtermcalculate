@@ -346,30 +346,21 @@ priceInput.pattern = "[0-9]*";
       const wrapper = document.createElement("div");
       wrapper.className = "counter-controls";
 
-      const minusBtn = document.createElement("button");
-      minusBtn.textContent = "-";
-      minusBtn.onclick = () => {
-        if (countInput.value > 0) {
-          countInput.value--;
-          calculate();
-        }
-      };
-      const countInput = document.createElement("input");
-      countInput.type = "number";
-      countInput.className = "count-input";
-		countInput.inputMode = "numeric";
-countInput.pattern = "[0-9]*";
-      countInput.min = 0;
-      countInput.value = 1;
-countInput.onfocus = () => countInput.select();
-      countInput.oninput = calculate;
+const minusBtn = document.createElement("button");
+minusBtn.textContent = "-";
+minusBtn.addEventListener("pointerdown", () => {
+  if (countInput.value > 0) {
+    countInput.value--;
+    calculate();
+  }
+});
 
-      const plusBtn = document.createElement("button");
-      plusBtn.textContent = "+";
-      plusBtn.onclick = () => {
-        countInput.value++;
-        calculate();
-      };
+const plusBtn = document.createElement("button");
+plusBtn.textContent = "+";
+plusBtn.addEventListener("pointerdown", () => {
+  countInput.value++;
+  calculate();
+});
 
       wrapper.appendChild(minusBtn);
       wrapper.appendChild(countInput);
