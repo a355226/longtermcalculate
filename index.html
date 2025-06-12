@@ -348,12 +348,12 @@ priceInput.pattern = "[0-9]*";
 
       const minusBtn = document.createElement("button");
       minusBtn.textContent = "-";
-      minusBtn.onclick = () => {
-        if (countInput.value > 0) {
-          countInput.value--;
-          calculate();
-        }
-      };
+minusBtn.addEventListener("pointerdown", () => {
+  if (countInput.value > 0) {
+    countInput.value--;
+    calculate();
+  }
+});
       const countInput = document.createElement("input");
       countInput.type = "number";
       countInput.className = "count-input";
@@ -366,11 +366,10 @@ countInput.onfocus = () => countInput.select();
 
       const plusBtn = document.createElement("button");
       plusBtn.textContent = "+";
-      plusBtn.onclick = () => {
-        countInput.value++;
-        calculate();
-      };
-
+plusBtn.addEventListener("pointerdown", () => {
+  countInput.value++;
+  calculate();
+});
       wrapper.appendChild(minusBtn);
       wrapper.appendChild(countInput);
       wrapper.appendChild(plusBtn);
