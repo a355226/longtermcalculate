@@ -309,41 +309,26 @@ function generateSummary() {
 
   // ✅ 處理 BA 區塊
   if (groups.BA.length) {
-const customItems = groups.BA.filter(item => {
-  const code = item.split("*")[0];
-  return !(code in services);
-});
-
-const standardItems = groups.BA.filter(item => {
-  const code = item.split("*")[0];
-  return (code in services) && code.startsWith("BA");
-});
-
+    const customItems = groups.BA.filter(item => {
+      const code = item.split("*")[0];
+      return !(code in services);
+    });
 standardItems.sort((a, b) => {
   const codeA = a.split("*")[0];
   const codeB = b.split("*")[0];
   return serviceOrder.indexOf(codeA) - serviceOrder.indexOf(codeB);
 });
-
     let line = "";
     if (caseName) line += caseName + "：";
 
     if (customItems.length) line += customItems.join(";") + (standardItems.length ? ";" : "");
     if (standardItems.length) line += standardItems.join(",");
 
-const baTotal = sumGroup(groups.BA, priceMap);
-const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
-const hasExtraCare = document.querySelector("#extraCare").checked;
-const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
-const overAmount = baTotal - finalQuota;
+    const baTotal = sumGroup(groups.BA, priceMap);
+    line += "," + baTotal;
 
-line += "," + baTotal;
-if (overAmount > 0) {
-  line += `（超額${overAmount}）`;
-}
-
-
-result.push(line);
+    result.push(line);
+  }
 
   // ✅ 處理 GA 與 SC 區塊
   if (groups.GA.length || groups.SC.length) {
@@ -535,6 +520,22 @@ plusBtn.addEventListener("pointerdown", () => {
       notice.style.display = "block";
       setTimeout(() => { notice.style.display = "none"; }, 3000);
     }
+	function applyCount() {
+  const value = prompt("請輸入要套用的次數數字：");
+  const num = parseInt(value);
+  if (isNaN(num) || num < 0) {
+    alert("請輸入有效的正整數。");
+    return;
+  }
+
+  document.querySelectorAll(".count-input").forEach(input => {
+    input.value = num;
+  });
+
+  calculate();
+}
+
+    window.onload = () => addRow();
 
     // 以下是新增功能函式（請直接貼上）
 let hasBoundEnter = false;
@@ -602,9 +603,6 @@ function shareToLine() {
 window.onload = () => {
   addRow(); // 原本的功能
 
-  // ✅ 加上這行：綁定新增欄位按鈕
-  document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
-
   // 👉 加入裝置偵測判斷是否隱藏分享按鈕
   const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
   const shareSupported = typeof navigator.share === "function";
@@ -614,7 +612,6 @@ window.onload = () => {
     shareBtn.style.display = "none";
   }
 };
-
 // ✅ 防止 iOS 雙擊觸發縮放（保留原字體大小）
 let lastTouch = 0;
 document.addEventListener('touchend', function (e) {
@@ -624,76 +621,7 @@ document.addEventListener('touchend', function (e) {
   }
   lastTouch = now;
 }, { passive: false });
-
-	function addRow() {
-  const tbody = document.querySelector("#serviceTable tbody");
-  const row = document.createElement("tr");
-
-  // 建立 select 選單
-  const serviceCell = document.createElement("td");
-  const select = document.createElement("select");
-  serviceOrder.forEach(key => {
-    const option = document.createElement("option");
-    option.value = key;
-    option.textContent = key;
-    select.appendChild(option);
-  });
-
-  // 建立價格輸入框
-  const priceCell = document.createElement("td");
-  const priceInput = document.createElement("input");
-  priceInput.type = "number";
-  priceInput.className = "price-input";
-  priceInput.value = services[select.value] || 0;
-  priceInput.readOnly = true;
-  priceCell.appendChild(priceInput);
-
-  // 建立次數欄（含加減按鈕）
-  const countCell = document.createElement("td");
-  const countInput = document.createElement("input");
-  countInput.type = "number";
-  countInput.className = "count-input";
-  countInput.value = 1;
-  countInput.min = 0;
-  countCell.appendChild(countInput);
-
-  // 小計欄
-  const subtotalCell = document.createElement("td");
-  subtotalCell.textContent = priceInput.value;
-
-  // 刪除按鈕
-  const deleteCell = document.createElement("td");
-  const deleteBtn = document.createElement("span");
-  deleteBtn.textContent = "🗑️";
-  deleteBtn.className = "delete-btn";
-  deleteBtn.onclick = () => {
-    row.remove();
-    calculate();
-  };
-  deleteCell.appendChild(deleteBtn);
-
-  // select 變動更新價格
-  select.onchange = () => {
-    priceInput.value = services[select.value] || 0;
-    priceInput.readOnly = select.value !== "自行輸入";
-    calculate();
-  };
-
-  serviceCell.appendChild(select);
-  row.appendChild(serviceCell);
-  row.appendChild(priceCell);
-  row.appendChild(countCell);
-  row.appendChild(subtotalCell);
-  row.appendChild(deleteCell);
-  tbody.appendChild(row);
-
-  calculate();
-}
-window.onload = () => {
-  document.getElementById("addRowBtn").addEventListener("click", addRow);
-  addRow(); // 初始就新增一列
-};
-
+document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
   </script>
 </body>
 </html>
