@@ -115,17 +115,39 @@ select {
 	/* ✅ 套用次數彈窗樣式調整 */
 #countOverlay .modal-content {
   background: white;
-  padding: 1em;
-  width: 90%;
-  max-width: 300px;
-  position: absolute;
+  width: 95%;
+  max-width: 400px;
+  padding: 1.5em 1em;
+  box-sizing: border-box;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border-radius: 8px;
+  border-radius: 10px;
   text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+#countOverlay input#countValue {
+  width: 100%;
+  font-size: 1.1em;
+  padding: 0.6em;
+  margin-bottom: 1em;
   box-sizing: border-box;
 }
+
+#countOverlay .button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75em;
+}
+
+#countOverlay .button-group .btn {
+  flex: 1;
+  white-space: nowrap;
+  font-size: 1em;
+}
+
 
 #countOverlay input#countValue {
   width: 100%;
