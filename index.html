@@ -12,6 +12,8 @@
 
 <!-- Android Chrome 專用 -->
 <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+<link rel="manifest" href="manifest.json">
+
 <style>
   body { font-family: 'Segoe UI', sans-serif; padding: 2em; background-color: #f8f9fa; }
   h2 { text-align: center; color: #333; }
@@ -892,6 +894,17 @@ function closePopup() {
   document.getElementById("popupSelector").style.display = "none";
 }
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => {
+        console.log('Service Worker registered.', reg);
+      })
+      .catch(err => {
+        console.error('Service Worker registration failed:', err);
+      });
+  });
+}
 
   </script>
 
