@@ -24,3 +24,5 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+self.skipWaiting(); // 讓新 SW 立刻啟用
+self.clients.claim(); // 立刻接管頁面
