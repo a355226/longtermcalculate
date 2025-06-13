@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>長照額度試算工具</title>
+  <title>長照額度試算小工具</title>
 <!-- 網頁 Favicon（桌機） -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 
@@ -907,9 +907,6 @@ btn.onclick = () => {
   document.getElementById("popupSelector").style.display = "flex";
 }
 
-
-
-
 function closePopup() {
   document.getElementById("popupSelector").style.display = "none";
 }
@@ -925,7 +922,12 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
-
+	//即時更新
+const version = '20240613';
+  document.querySelectorAll('link[rel="stylesheet"], script[src], link[rel*="icon"], link[rel="manifest"]').forEach(el => {
+    const attr = el.href !== undefined ? 'href' : 'src';
+    el[attr] += (el[attr].includes('?') ? '&' : '?') + 'v=' + version;
+  });
   </script>
 
 <!-- 📦 項目選擇彈窗 -->
