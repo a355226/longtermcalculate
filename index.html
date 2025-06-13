@@ -514,15 +514,18 @@ function addRow() {
   selectorBox.className = "selector-button";
   selectorBox.textContent = "請選擇";
   selectorBox.dataset.value = "";
+selectorBox.style.color = "#7B7B7B";
+
 
   wrapper.appendChild(selectorBox);
   serviceCell.appendChild(wrapper);
   row.appendChild(serviceCell);
 
   selectorBox.onclick = () => {
-    openPopup((selectedCode) => {
-      selectorBox.textContent = selectedCode;
-      selectorBox.dataset.value = selectedCode;
+  openPopup((selectedCode) => {
+    selectorBox.textContent = selectedCode;
+    selectorBox.dataset.value = selectedCode;
+    selectorBox.style.color = ""; // ✅ 讓選到項目後恢復預設黑色
 
       const priceInput = row.querySelector(".price-input");
 priceInput.value = services[selectedCode] || 0;
@@ -779,8 +782,15 @@ function restoreState(state) {
     const priceInput = row.querySelector(".price-input");
     const countInput = row.querySelector(".count-input");
 
-    selectorBox.textContent = data.serviceCode;
-    selectorBox.dataset.value = data.serviceCode;
+    if (data.serviceCode) {
+  selectorBox.textContent = data.serviceCode;
+  selectorBox.dataset.value = data.serviceCode;
+  selectorBox.style.color = "";
+} else {
+  selectorBox.textContent = "請選擇";
+  selectorBox.dataset.value = "";
+  selectorBox.style.color = "#7B7B7B"; // 還原灰色
+}
 
     priceInput.value = data.price;
     countInput.value = data.count;
@@ -875,11 +885,21 @@ function openPopup(callback) {
       const opt = serviceOptions[idx];
       const btn = document.createElement("button");
       btn.textContent = opt;
-      btn.className = "popup-btn";
-      btn.onclick = () => {
-        popupCallback(opt);
-        closePopup();
-      };
+btn.className = "popup-btn";
+
+// ✅ 根據項目內容設定字體顏色
+if (opt === "自行輸入") {
+  btn.style.color = "#FF5151";
+} else if (opt === "GA09" || opt === "SC09") {
+  btn.style.color = "#FF0080";
+} else if (opt === "C碼(單次)") {
+  btn.style.color = "#007979";
+}
+
+btn.onclick = () => {
+  popupCallback(opt);
+  closePopup();
+};
       columnContainers[col].appendChild(btn);
     }
   }
