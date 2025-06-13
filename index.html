@@ -766,65 +766,26 @@ const serviceCode = selectorBox ? selectorBox.dataset.value : "";
 }
 
 function restoreState(state) {
-  document.querySelector("#serviceTable tbody").innerHTML = "";
+  clearAll();
 
   state.rows.forEach(data => {
-    const tbody = document.querySelector("#serviceTable tbody");
-    const row = document.createElement("tr");
+    addRow(); // 先新增一列
+    const rows = document.querySelectorAll("#serviceTable tbody tr");
+    const row = rows[rows.length - 1]; // 取剛剛新增的那一列
 
-    const serviceCell = document.createElement("td");
-    const select = document.createElement("select");
-    serviceOrder.forEach(key => {
-      const option = document.createElement("option");
-      option.value = key;
-      option.textContent = key;
-      if (key === data.serviceCode) option.selected = true;
-      select.appendChild(option);
-    });
+    const selectorBox = row.querySelector(".selector-button");
+    const priceInput = row.querySelector(".price-input");
+    const countInput = row.querySelector(".count-input");
 
-    const priceInput = document.createElement("input");
-    priceInput.type = "number";
-    priceInput.className = "price-input";
-    priceInput.inputMode = "numeric";
-    priceInput.pattern = "[0-9]*";
-    priceInput.value = data.price || services[data.serviceCode] || 0;
-    priceInput.readOnly = (data.serviceCode !== "自行輸入");
-    priceInput.oninput = calculate;
+    selectorBox.textContent = data.serviceCode;
+    selectorBox.dataset.value = data.serviceCode;
 
-    select.onchange = () => {
-      const newServiceCode = select.value;
-      if (newServiceCode === "自行輸入") {
-        const wrapper = document.createElement("div");
-        wrapper.className = "select-wrapper";
-        wrapper.appendChild(select);
-
-        const input = document.createElement("input");
-        input.type = "text";
-        input.className = "custom-name";
-        input.placeholder = "項目名稱";
-        input.value = "";
-        input.addEventListener("input", () => {
-          input.value = input.value.toUpperCase();
-        });
-        wrapper.appendChild(input);
-
-        serviceCell.innerHTML = "";
-        serviceCell.appendChild(wrapper);
-        priceInput.readOnly = false;
-      } else {
-        serviceCell.innerHTML = "";
-        serviceCell.appendChild(select);
-        priceInput.value = services[newServiceCode];
-        priceInput.readOnly = true;
-      }
-      calculate();
-    };
+    priceInput.value = data.price;
+    countInput.value = data.count;
 
     if (data.serviceCode === "自行輸入") {
-      const wrapper = document.createElement("div");
-      wrapper.className = "select-wrapper";
-      wrapper.appendChild(select);
-
+      priceInput.readOnly = false;
+      priceInput.type = "text";
       const input = document.createElement("input");
       input.type = "text";
       input.className = "custom-name";
@@ -833,67 +794,10 @@ function restoreState(state) {
       input.addEventListener("input", () => {
         input.value = input.value.toUpperCase();
       });
-      wrapper.appendChild(input);
-      serviceCell.appendChild(wrapper);
+      row.querySelector(".select-wrapper").appendChild(input);
     } else {
-      serviceCell.appendChild(select);
+      priceInput.readOnly = true;
     }
-    row.appendChild(serviceCell);
-
-    const priceCell = document.createElement("td");
-    priceCell.appendChild(priceInput);
-    row.appendChild(priceCell);
-
-    const countCell = document.createElement("td");
-    const wrapper = document.createElement("div");
-    wrapper.className = "counter-controls";
-
-    const minusBtn = document.createElement("button");
-    minusBtn.textContent = "-";
-    const countInput = document.createElement("input");
-    countInput.type = "number";
-    countInput.className = "count-input";
-    countInput.inputMode = "numeric";
-    countInput.pattern = "[0-9]*";
-    countInput.min = 0;
-    countInput.value = data.count;
-    countInput.oninput = calculate;
-    countInput.onfocus = () => countInput.select();
-    minusBtn.addEventListener("pointerdown", () => {
-      if (countInput.value > 0) {
-        countInput.value--;
-        calculate();
-      }
-    });
-
-    const plusBtn = document.createElement("button");
-    plusBtn.textContent = "+";
-    plusBtn.addEventListener("pointerdown", () => {
-      countInput.value++;
-      calculate();
-    });
-
-    wrapper.appendChild(minusBtn);
-    wrapper.appendChild(countInput);
-    wrapper.appendChild(plusBtn);
-    countCell.appendChild(wrapper);
-    row.appendChild(countCell);
-
-    const subtotalCell = document.createElement("td");
-    row.appendChild(subtotalCell);
-
-    const deleteCell = document.createElement("td");
-    const deleteBtn = document.createElement("span");
-    deleteBtn.textContent = "🗑️";
-    deleteBtn.className = "delete-btn";
-    deleteBtn.onclick = () => {
-      row.remove();
-      calculate();
-    };
-    deleteCell.appendChild(deleteBtn);
-    row.appendChild(deleteCell);
-
-    tbody.appendChild(row);
   });
 
   document.getElementById("subsidyRate").value = state.subsidyRate;
@@ -904,6 +808,7 @@ function restoreState(state) {
 
   calculate();
 }
+
 
 document.getElementById("memoryFieldset").addEventListener("change", e => {
   if (e.target.name === "memorySlot") {
@@ -980,9 +885,14 @@ function openPopup(callback) {
   document.getElementById("popupSelector").style.display = "flex";
 }
 
+
+
+
 function closePopup() {
   document.getElementById("popupSelector").style.display = "none";
 }
+
+
   </script>
 
 <!-- 📦 項目選擇彈窗 -->
