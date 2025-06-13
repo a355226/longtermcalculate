@@ -923,7 +923,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 	//即時更新
-const version = '20240613';
+const version = '20240614';
   document.querySelectorAll('link[rel="stylesheet"], script[src], link[rel*="icon"], link[rel="manifest"]').forEach(el => {
     const attr = el.href !== undefined ? 'href' : 'src';
     el[attr] += (el[attr].includes('?') ? '&' : '?') + 'v=' + version;
