@@ -827,13 +827,15 @@ document.getElementById("memoryFieldset").addEventListener("change", e => {
     memories[currentMemory] = captureState();
     currentMemory = parseInt(e.target.value);
     if (memories[currentMemory]) {
-      restoreState(memories[currentMemory]);
-    } else {
-      clearAll();
-      document.getElementById("caseName").value = "";
-      document.getElementById("generatedOutput").value = "";
-      calculate();
-    }
+  restoreState(memories[currentMemory]);
+} else {
+  clearAll();
+  document.getElementById("caseName").value = "";
+  document.getElementById("generatedOutput").value = "";
+  document.getElementById("extraCare").checked = false; // ✅ 預設取消有外看
+  removedBARows = []; // ✅ 同步清空記錄
+  calculate();
+}
   }
 });
 
@@ -848,6 +850,71 @@ generateSummary = function () {
 window.addEventListener("load", () => {
   memories[1] = captureState();
 });
+
+let removedBARows = [];
+
+document.getElementById("extraCare").addEventListener("change", function () {
+  const isChecked = this.checked;
+
+  if (isChecked) {
+    removedBARows = [];
+    const rows = document.querySelectorAll("#serviceTable tbody tr");
+    rows.forEach(row => {
+      const code = row.querySelector(".selector-button")?.dataset.value || "";
+      if (code.startsWith("BA")) {
+        removedBARows.push(serializeRow(row));
+        row.remove();
+      }
+    });
+    calculate();
+  } else {
+    removedBARows.forEach(data => {
+      addRow();
+      const rows = document.querySelectorAll("#serviceTable tbody tr");
+      const row = rows[rows.length - 1];
+
+      const selectorBox = row.querySelector(".selector-button");
+      const priceInput = row.querySelector(".price-input");
+      const countInput = row.querySelector(".count-input");
+
+      selectorBox.textContent = data.serviceCode;
+      selectorBox.dataset.value = data.serviceCode;
+      selectorBox.style.color = "";
+
+      priceInput.value = data.price;
+      countInput.value = data.count;
+
+      if (data.serviceCode === "自行輸入") {
+        priceInput.readOnly = false;
+        priceInput.type = "text";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "custom-name";
+        input.placeholder = "項目名稱";
+        input.value = data.customName;
+        input.addEventListener("input", () => {
+          input.value = input.value.toUpperCase();
+        });
+        row.querySelector(".select-wrapper").appendChild(input);
+      } else {
+        priceInput.readOnly = true;
+      }
+    });
+    removedBARows = [];
+    calculate();
+  }
+});
+
+function serializeRow(row) {
+  return {
+    serviceCode: row.querySelector(".selector-button")?.dataset.value || "",
+    customName: row.querySelector(".custom-name")?.value || "",
+    price: parseInt(row.querySelector(".price-input").value || 0),
+    count: parseInt(row.querySelector(".count-input").value || 0)
+  };
+};
+// ✅ ←←←← 到這邊結束
+
 const serviceOptions = [
   "BA01", "BA02", "BA03", "BA04", "BA05", "BA07", "BA10", "BA11", "BA12", "BA13",
   "BA14", "BA15", "BA16", "BA17a", "BA17b", "BA17c", "BA17d1", "BA17d2", "BA17e",
