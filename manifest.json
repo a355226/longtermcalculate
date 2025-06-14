@@ -1,9 +1,9 @@
 {
   "name": "長照額度試算工具",
-  "short_name": "長照試算",
-  "start_url": ".",
+  "short_name": "額度試算",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#f8f9fa",
+  "background_color": "#ffffff",
   "theme_color": "#2e86d9",
   "icons": [
     {
