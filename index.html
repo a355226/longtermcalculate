@@ -465,9 +465,10 @@ const serviceCode = selectorBox ? selectorBox.dataset.value : "";
     total += subtotal;
 
     // 只有 BA 或 自行輸入的才列入剩餘額度計算
-    if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") {
-      totalForQuota += subtotal;
-    }
+// ✅ 將 "C碼(單次)" 納入額度計算
+if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCode === "C碼(單次)") {
+  totalForQuota += subtotal;
+}
 
     const perItemCopay = Math.floor(price * subsidyRate);
     copayTotal += perItemCopay * count;
