@@ -475,7 +475,8 @@ if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCod
 
     const item = `${name}*${count}`;
     outputGroups.priceMap[name] = price;
-    if (serviceCode.startsWith("BA") || serviceCode === "自行輸入") outputGroups.BA.push(item);
+    if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCode === "C碼(單次)")
+  outputGroups.BA.push(item);
     else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
     else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
     else outputGroups.other.push(item);
