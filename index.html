@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>長照額度試算工具</title>
-<!-- ✅ 桌面 favicon -->
+<!-- 網頁 Favicon（桌機） -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 
-<!-- ✅ iOS 主畫面 icon -->
+<!-- Apple iOS 專用 -->
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 
-<!-- ✅ Android PWA manifest -->
+<!-- Android Chrome 專用 -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
 <link rel="manifest" href="manifest.json">
 
 <style>
@@ -651,9 +652,13 @@ priceInput.onfocus = () => priceInput.select();
     return;
   }
 
-  document.querySelectorAll(".count-input").forEach(input => {
-    input.value = num;
-  });
+  document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
+  const code = row.querySelector(".selector-button")?.dataset.value || "";
+  if (code === "C碼(單次)" || code === "GA09" || code === "SC09") return;
+
+  const countInput = row.querySelector(".count-input");
+  if (countInput) countInput.value = num;
+});
 
   calculate();
 }
@@ -689,9 +694,13 @@ function applyCount() {
         return;
       }
 
-      document.querySelectorAll(".count-input").forEach(input => {
-        input.value = num;
-      });
+      document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
+  const code = row.querySelector(".selector-button")?.dataset.value || "";
+  if (code === "C碼(單次)" || code === "GA09" || code === "SC09") return;
+
+  const countInput = row.querySelector(".count-input");
+  if (countInput) countInput.value = num;
+});
 
       closeCountOverlay();
       calculate();
