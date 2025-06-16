@@ -277,6 +277,25 @@ select {
   justify-content: center;
 }
 
+	.shrink-btn {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 0.3em 0.7em;
+  font-size: 0.9em;
+  background-color: #ccc;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 999;
+}
+@media screen and (min-width: 900px) {
+  .shrink-btn {
+    display: block;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1005,6 +1024,34 @@ const version = '20240614';
     const attr = el.href !== undefined ? 'href' : 'src';
     el[attr] += (el[attr].includes('?') ? '&' : '?') + 'v=' + version;
   });
+
+	  function openMiniWindow() {
+  const miniWindow = window.open(
+    window.location.href,
+    'miniQuotaCalc',
+    'width=400,height=600,scrollbars=no,resizable=no'
+  );
+  if (miniWindow) {
+    miniWindow.focus();
+  } else {
+    alert("無法開啟迷你視窗，請檢查是否被瀏覽器阻擋。");
+  }
+}
+
+function createShrinkButton() {
+  if (window.innerWidth >= 900) {
+    const btn = document.createElement("button");
+    btn.className = "shrink-btn";
+    btn.textContent = "📟 小視窗模式";
+    btn.onclick = openMiniWindow;
+    document.body.appendChild(btn);
+  }
+}
+
+window.addEventListener("load", () => {
+  createShrinkButton();
+});
+
   </script>
 
 <!-- 📦 項目選擇彈窗 -->
