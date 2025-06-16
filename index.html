@@ -1027,18 +1027,25 @@ const version = '20240614';
     el[attr] += (el[attr].includes('?') ? '&' : '?') + 'v=' + version;
   });
 
-	  function openMiniWindow() {
-  const miniWindow = window.open(
-    window.location.href,
-    'miniQuotaCalc',
-    'width=400,height=600,scrollbars=no,resizable=no'
-  );
+function openMiniWindow() {
+  const screenW = window.screen.width;
+  const screenH = window.screen.height;
+  const width = 400;
+  const height = 600;
+  const left = screenW - width - 20; // 離右側一點空間
+  const top = 20; // 離頂部
+
+  const features = `width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=no`;
+
+  const miniWindow = window.open(window.location.href, 'miniQuotaCalc', features);
+
   if (miniWindow) {
     miniWindow.focus();
   } else {
-    alert("無法開啟迷你視窗，請檢查是否被瀏覽器阻擋。");
+    alert("無法開啟迷你視窗，請檢查是否有瀏覽器阻擋彈出視窗。");
   }
 }
+
 
 function createShrinkButton() {
   if (window.innerWidth >= 900) {
