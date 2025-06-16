@@ -346,13 +346,16 @@ function openMiniWindow() {
     alert("無法開啟迷你視窗，請檢查是否有瀏覽器阻擋彈出視窗。");
   }
 }
-// 👇 Brave 強制顯示「小視窗模式」按鈕（只限桌機）
-window.addEventListener('DOMContentLoaded', () => {
+function createShrinkButton() {
   const btn = document.querySelector('.shrink-btn');
   if (btn && window.innerWidth >= 900) {
     btn.style.display = 'block';
+    btn.onclick = openMiniWindow;
   }
-});
+}
+window.addEventListener("load", createShrinkButton);
+
+
   
 </script>
 <div class="footer-note">Designed by KJ&nbsp;&nbsp;</div>
