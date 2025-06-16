@@ -1,1033 +1,340 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>長照額度試算工具</title>
-<!-- 網頁 Favicon（桌機） -->
+<!-- 分頁用 -->
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 
-<!-- Apple iOS 專用 -->
+<!-- iOS 主畫面用 -->
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 
-<!-- Android Chrome 專用 -->
-<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+<!-- Android PWA -->
 <link rel="manifest" href="manifest.json">
-
-<style>
-  body { font-family: 'Segoe UI', sans-serif; padding: 2em; background-color: #f8f9fa; }
-  h2 { text-align: center; color: #333; }
-  #actions { display: flex; justify-content: space-between; margin-bottom: 1em; }
-  .btn { padding: 0.5em 1em; background-color: #2e86d9; color: white; border: none; border-radius: 4px; cursor: pointer; }
-  .btn:hover { background-color: #0056b3; }
-  table { width: 100%; border-collapse: collapse; margin-top: 1em; }
-  th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
-  input[type="number"], input[type="text"] { width: 60px; text-align: center; }
-  .result { margin-top: 2em; font-size: 1.1em; }
-  .blue { color: #007bff; } .red { color: #dc3545; }
-  #outputBox { margin-top: 3em; }
-  #generatedOutput { width: 100%; height: 100px; margin-bottom: 1em; }
-  .delete-btn { cursor: pointer; color: #dc3545; font-weight: bold; font-size: 1.2em; }
-  .footer { margin-top: 3em; text-align: right; font-size: 0.8em; color: #aaa; font-family: "Courier New", cursive; }
-  .counter-controls button { padding: 0 8px; font-weight: bold; }
-
-  /* ✅ 手機響應式設計（不滑動，格子變窄） */
-@media (max-width: 768px) {
-  body {
-    padding: 1em;
-    font-size: 0.9em;
-  }
-
-  #actions {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  justify-content: space-between;
-}
-
-	#actions .btn {
-  flex: 1 1 30%;
-  font-size: 0.85em;
-}
-
-  .btn {
-    width: 100%;
-    font-size: 1em;
-  }
-
-  table {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-  }
-
-th, td {
-  font-size: 0.75em;
-  padding: 0.25em;
-  white-space: normal;
-  word-break: break-word;
-  overflow: hidden;
-}
-
-input[type="number"], input[type="text"] {
-  width: 100%;
-  font-size: 0.75em;
-  box-sizing: border-box;
-}
-
-.custom-name {
-  width: 100%;
-  font-size: 0.75em;
-  box-sizing: border-box;
-  display: block;
-  margin-top: 4px;
-}
-
-  .counter-controls {
-    flex-direction: column;
-    align-items: center;
-  }
-
- .counter-controls button {
-  font-size: 1.2em;
-  padding: 0px 12px;
-  margin: 2px 0;
-  border-radius: 4px;
-}
-
-  #generatedOutput {
-    height: 120px;
-  }
-.select-wrapper {
-  display: flex;
-  gap: 4px;
-  flex-direction: column;
-}
-.select-wrapper select,
-.select-wrapper .custom-name {
-  width: 100%;
-  font-size: 0.75em;
-  box-sizing: border-box;
-}
-select {
-  width: 100%;
-  min-width: 60px;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-  /* ✅ 補強手機點擊體驗 */
-  button,
-  .btn,
-  .counter-controls button {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }	
-	/* ✅ 套用次數彈窗樣式調整 */
-#countOverlay .modal-content {
+  <meta charset="UTF-8">
+  <title>首月額度計算器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; padding: 2em; background: #f4f8fb; }
+    h2 { text-align: center; color: #333; }
+    .date-controls, .options, .result { margin: 1em 0; text-align: center; }
+    button { padding: 0.5em 1em; margin: 0 0.5em; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    input[type="checkbox"] { transform: scale(1.5); margin-left: 10px; vertical-align: middle; }
+    .output-box {
   background: white;
-  width: 95%;
-  max-width: 400px;
-  padding: 1.5em 1em;
-  box-sizing: border-box;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  padding: 1em;
+  border-radius: 6px;
+  margin: 1em auto;
+  max-width: 325px;  /* ✅ 限制最大寬度 */
+  box-shadow: 0 0 5px #ccc;
 }
 
-#countOverlay input#countValue {
-  width: 100%;
+    .copied { color: green; margin-top: 0.5em; font-weight: bold; }
+.result-table .row {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.5em 0;
   font-size: 1.1em;
-  padding: 0.6em;
-  margin-bottom: 1em;
-  box-sizing: border-box;
+}
+.result-table span {
+  flex: none;
+  text-align: left;
+}
+.result-table b {
+  flex: none;
+  text-align: right;
+  min-width: 80px;
 }
 
-#countOverlay .button-group {
+.options {
   display: flex;
-  justify-content: space-between;
-  gap: 0.75em;
-}
-
-#countOverlay .button-group .btn {
-  flex: 1;
-  white-space: nowrap;
-  font-size: 1em;
-}
-}
-
-#countOverlay input#countValue {
-  width: 100%;
-  font-size: 1em;
-  padding: 0.5em;
-  margin-bottom: 1em;
-  box-sizing: border-box;
-}
-	/* ✅ 修正彈出視窗與輸入框樣式 */
-
-/* ✅ 按鈕容器（讓按鈕不重疊） */
-#countOverlay .button-group {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5em;
-}
-
-#countOverlay .button-group .btn {
-  flex: 1;
-  white-space: nowrap;
-}
-/* 通用：所有螢幕都置中 */
-#countOverlay .modal-content{
-  background:#fff;
-  width:95%;
-  max-width:400px;
-  padding:1.5em 1em;
-  box-sizing:border-box;
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  border-radius:10px;
-  text-align:center;
-  box-shadow:0 0 20px rgba(0,0,0,.2);
-}
-
-/* 輸入框 */
-#countOverlay input#countValue{
-  width:100%;
-  font-size:1.1em;
-  padding:.6em;
-  margin-bottom:1em;
-  box-sizing:border-box;
-}
-
-/* 按鈕橫排不重疊 */
-#countOverlay .button-group{
-  display:flex;
-  justify-content:space-between;
-  gap:.75em;
-}
-#countOverlay .button-group .btn{
-  flex:1;
-  white-space:nowrap;
-}
-
-.selector-button {
-  background-color: #e0f0ff;
-  border: 1px solid #9cc7f3;
-  padding: 0.3em 0.6em;
-  border-radius: 5px;
-  cursor: pointer;
-  display: inline-block;
-  text-align: center;
-  font-size: 0.9em;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.popup-btn {
-  background-color: #e0f0ff;
-  border: 1px solid #9cc7f3;
-  padding: 0.5em 0.6em;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 0.9em;
-}
-
-.popup-btn:hover {
-  background-color: #d0e8ff;
-}
-
-.selector-button {
-  background-color: #e0f0ff;
-  border: 1px solid #9cc7f3;
-  padding: 0.3em 0.6em;
-  border-radius: 5px;
-  cursor: pointer;
-  display: inline-block;
-  text-align: center;
-  font-size: 0.9em;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.popup-btn {
-  background-color: #e0f0ff;
-  border: 1px solid #9cc7f3;
-  padding: 0.5em 0.6em;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 0.9em;
-}
-
-.popup-btn:hover {
-  background-color: #d0e8ff;
-}
-
-#popupGrid {
-  display: flex;
-  gap: 0.75em;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5em;  /* ← 這行控制間距 */
+  margin: 1em 0;
+  text-align: center;
 }
 
+.warning {
+  color: #FF5151;
+  font-weight: bold;
+}
+
+.footer-note {
+  position: fixed;
+  bottom: 10px;
+  right: 15px;
+  font-size: 0.9em;
+  color: #aaa;
+  font-style: italic;
+  pointer-events: none;
+  user-select: none;
+}
+
+  button {
+    padding: 0.5em 1em;
+    margin: 0 0.5em;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    touch-action: manipulation;  /* ✅ 新增這一行 */
+  }
+
+select {
+  font-size: 1.2em;
+  padding: 0.1em 0.9em;
+  min-width: 100px; /* 放大 CMS 選單寬度 */
+  border-radius: 6px;
+  border: 1px solid #ccc;
+text-align: center;
+}
+
+input[type="date"] {
+  font-size: 1.2em;
+  padding: 0.4em 0.6em;
+  width: 180px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  text-align: center;  /* ✅ 日期文字置中 */
+-webkit-appearance: none; /* ✅ 解決 Android Chrome 不置中問題 */
+  appearance: none;
+}
+
+.date-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em; /* 按鈕與欄位間距 */
+  flex-wrap: nowrap;    /* ✅ 禁止換行 */
+}
+
+.date-controls input[type="date"] {
+  flex-shrink: 0;
+  width: 180px;         /* 固定寬度，防止自動收窄 */
+  font-size: 1.2em;
+  text-align: center;
+  padding: 0.4em 0.6em;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+select {
+  text-align: center;
+  text-align-last: center; /* ✅ 對IOS select 有效的置中方式 */
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  text-align: center;
+}
+
+input[type="date"]::-webkit-inner-spin-button,  /* ✅ 對android select 有效的置中方式 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ✅ 強化 Android 日期欄位文字置中 */
+input[type="date"]::-webkit-datetime-edit {
+  text-align: center;
+  display: inline-block;
+  width: 100%;
+}
+
+/* ✅ 解決日期欄位左右內距/圖示歪斜問題 */
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  margin: 0 auto;
+  display: block;
+  position: relative;
+}
+    
 .shrink-btn {
   display: none;
   position: absolute;
   top: 15px;
-  right: 15px;
+  right: 20px;
   padding: 0.3em 0.7em;
   font-size: 0.9em;
   background-color: #ccc;
-  color: white;  /* ✅ 文字變白色 */
   border: none;
   border-radius: 6px;
   cursor: pointer;
   z-index: 999;
 }
+
 @media screen and (min-width: 900px) {
   .shrink-btn {
     display: block;
   }
 }
 
-
-</style>
+  </style>
 </head>
 <body>
-  <h2><img src="icon.png" alt="icon" style="height: 1.5em; vertical-align: middle; margin-right: 0.3em;">長照額度試算工具</h2>
-  <div id="actions">
-    <button class="btn" id="addRowBtn">➕ 新增欄位</button>
-	<button class="btn" onclick="applyCount()">📌 套用次數</button>
-    <button class="btn" onclick="clearAll()">🗑️ 全部清除</button>
-  </div>
 
-  <table id="serviceTable">
-    <thead>
-      <tr>
-        <th>項目</th><th>費用</th><th>次數</th><th>小計</th><th>刪除</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<h2>
+  <img src="https://cdn.jsdelivr.net/gh/a355226/quotadeduction/icon.png" alt="icon" style="height: 1.8em; vertical-align: middle; margin-right: 0.3em;">
+  首月額度計算器
+</h2>
 
-<div class="result" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1em;">
-  <!-- 左側原本資訊 -->
-  <div style="flex: 1;">
-    <p>💰 <strong>服務總額：</strong><span id="totalCost">0</span> 元</p>
-    <label>政府補助比例：
-  <select id="subsidyRate" onchange="calculate()" style="width: 9em;">
-        <option value="0.16" selected>84%（一般）</option>
-        <option value="0.05">95%（中低）</option>
-        <option value="0">100%（低收）</option>
-      </select>
-    </label>
-    <br><br>
-   <label>長照失能等級：
-  <select id="disabilityLevel" onchange="calculate()" style="width: 9em;">
-        <option value="10020">2 級</option><option value="15460">3 級</option><option value="18580">4 級</option>
-        <option value="24100">5 級</option><option value="28070">6 級</option><option value="32090">7 級</option><option value="36180">8 級</option>
-      </select>
-    </label>
-    <label style="margin-left: 1em;">
-      <input type="checkbox" id="extraCare" onchange="calculate()"> 有外看
-    </label>
+<button class="shrink-btn" onclick="openMiniWindow()">📟 小視窗模式</button>
 
-    <p>🧍 <strong>民眾自付額：</strong><span id="copayAmount">0</span> 元</p>
-    <p>🏛️ <strong>政府補助額：</strong><span id="subsidyAmount">0</span> 元</p>
-    <p>💵 <strong>剩餘額度：</strong><span id="remainingQuota" class="blue">0</span> 元</p>
-  </div>
-
-  <!-- 右側新增記憶選項 -->
-<fieldset id="memoryFieldset" style="border: 1px solid #ccc; padding: 0.75em 1em; border-radius: 6px; font-size: 0.95em; margin-top: 1.5em;">
-  <legend style="font-weight: bold;">🔁切換</legend>
-  <div style="margin-bottom: 1em;"><label><input type="radio" name="memorySlot" value="1" checked> 記憶1</label></div>
-  <div style="margin-bottom: 1em;"><label><input type="radio" name="memorySlot" value="2"> 記憶2</label></div>
-  <div><label><input type="radio" name="memorySlot" value="3"> 記憶3</label></div>
-</fieldset>
-</div>
-  <div id="outputBox">
-	<label for="caseName">👤 個案：</label>
-<input type="text" id="caseName" placeholder="選填" style="margin-bottom: 0.5em; width: 6em; display: inline-block; margin-right: 1em;">
-	<textarea id="generatedOutput" readonly></textarea>
-    <button class="btn" onclick="generateSummary()">📋 內容產出</button>
-    <button class="btn" onclick="copyOutput()">🖍️ 一鍵複製</button>
-    <div id="copyNotice" style="color: green; margin-top: 0.5em; display: none;">✅ 已複製！</div>
-<div style="margin-top: 0.5em;">
-  <button class="btn" onclick="shareToLine()">📤 分享</button>
-  <a href="https://cdn.jsdelivr.net/gh/a355226/longtermcalculate@main/longtermpricelist.jpg" target="_blank" style="margin-left: 1em; font-size: 0.9em;">📄 項目及費用一覽表</a>
+<div class="date-controls">
+  <button onclick="changeDate(-1)">－</button>
+  <input type="date" id="selectDate" value="2025-06-14" onchange="updateResults()" onkeydown="return false;" />
+  <button onclick="changeDate(1)">＋</button>
 </div>
 
-<!-- 套用次數輸入彈窗 -->
-<div id="countOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999;">
-<div class="modal-content">
-  <p>請輸入要套用的次數：</p>
-  <input id="countValue" type="number" inputmode="numeric" pattern="[0-9]*" min="0" />
-  <div class="button-group">
-    <button class="btn" onclick="confirmApplyCount()">確認套用</button>
-    <button class="btn" onclick="closeCountOverlay()" style="background-color: #ccc;">取消</button>
-  </div>
+<div class="options">
+  <label>CMS 等級：
+    <select id="cmsSelect" onchange="updateResults()">
+      <option value="">請選擇</option>
+      <option value="2">2級</option>
+      <option value="3">3級</option>
+      <option value="4">4級</option>
+      <option value="5">5級</option>
+      <option value="6">6級</option>
+      <option value="7">7級</option>
+      <option value="8">8級</option>
+    </select>
+  </label>
+  <label>
+    有外籍看護
+    <input type="checkbox" id="hasForeign" onchange="updateResults()">
+  </label>
 </div>
 
+<div class="result">
+  <div class="output-box" id="resultBox">請先選擇 CMS 等級與日期</div>
+</div>
 
-  </div>
+<div class="options">
+  <button onclick="copyText()">一鍵複製罐頭</button>
+  <div id="copyConfirm" class="copied" style="display:none;">複製成功！</div>
+</div>
 
-  <div class="footer">Designed by KJ</div>
-
-  <script>
-const services = {
-  "BA01": 260, "BA02": 195, "BA03": 35, "BA04": 130, "BA05": 310,
-  "BA07": 325, "BA10": 155, "BA11": 195, "BA12": 130, "BA13": 195,
-  "BA14": 685, "BA15": 195, "BA16": 130,
-  "BA17a": 75, "BA17b": 65, "BA17c": 50, "BA17d1": 50, "BA17d2": 50,
-  "BA17e": 50, "BA18": 200, "BA20": 175, "BA22": 130, "BA23": 200,
-  "BA24": 220, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自行輸入": 0
+<script>
+const cmsData = {
+  2: { no_foreign: 10020, with_foreign: 3006 },
+  3: { no_foreign: 15460, with_foreign: 4638 },
+  4: { no_foreign: 18580, with_foreign: 5574 },
+  5: { no_foreign: 24100, with_foreign: 7230 },
+  6: { no_foreign: 28070, with_foreign: 8421 },
+  7: { no_foreign: 32090, with_foreign: 9627 },
+  8: { no_foreign: 36180, with_foreign: 10854 }
 };
 
-    const serviceOrder = Object.keys(services).filter(k => k.startsWith("BA"))
-      .concat(Object.keys(services).filter(k => k.startsWith("GA")))
-      .concat(Object.keys(services).filter(k => k.startsWith("SC")))
-      .concat(["C碼(單次)", "自行輸入"]);
-
-    function sumGroup(arr, priceMap) {
-      return arr.reduce((sum, item) => {
-        const match = item.match(/\*(\d+)/);
-        const count = match ? parseInt(match[1]) : 1;
-        const name = item.split("*")[0];
-        return sum + (priceMap[name] || 0) * count;
-      }, 0);
-    }
-
-function generateSummary() {
-  const groups = calculate(true);
-  const caseName = document.querySelector("#caseName").value.trim();
-  const priceMap = groups.priceMap;
-  let result = [];
-
-  // ✅ 處理 BA 區塊
-  if (groups.BA.length) {
-    const customItems = groups.BA.filter(item => {
-      const code = item.split("*")[0];
-      return !(code in services);
-    });
-	const standardItems = groups.BA.filter(item => {
-  const code = item.split("*")[0];
-  return code in services;
-});
-
-standardItems.sort((a, b) => {
-  const codeA = a.split("*")[0];
-  const codeB = b.split("*")[0];
-  return serviceOrder.indexOf(codeA) - serviceOrder.indexOf(codeB);
-});
-    let line = "";
-    if (caseName) {
-  const levelText = document.querySelector("#disabilityLevel").selectedOptions[0].textContent;
-  line += `${caseName}（${levelText}）：`;
+function getMonthDays(date) {
+  const d = new Date(date);
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
 }
 
-    if (customItems.length) line += customItems.join(";") + (standardItems.length ? ";" : "");
-    if (standardItems.length) line += standardItems.join(",");
-
-const baTotal = sumGroup(groups.BA, priceMap);
-line += "," + baTotal;
-
-// ✅ 加入超額判斷與標示
-const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
-const hasExtraCare = document.querySelector("#extraCare").checked;
-const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
-
-if (baTotal > finalQuota) {
-  line += `（超額${baTotal - finalQuota}）`;
+function getDayOfMonth(date) {
+  return new Date(date).getDate();
 }
 
+function updateResults() {
+  const dateStr = document.getElementById("selectDate").value;
+  const cmsLevel = document.getElementById("cmsSelect").value;
+  const hasForeign = document.getElementById("hasForeign").checked;
+  const resultBox = document.getElementById("resultBox");
 
-    result.push(line);
-  }
-
-  // ✅ 處理 GA 與 SC 區塊
-  if (groups.GA.length || groups.SC.length) {
-    const ga = groups.GA.length ? groups.GA.join(",") + "," + sumGroup(groups.GA, priceMap) : "";
-    const sc = groups.SC.length ? groups.SC.join(",") + "," + sumGroup(groups.SC, priceMap) : "";
-    result.push([ga, sc].filter(Boolean).join(" ; "));
-  }
-
-  // ✅ 處理其他項目（如 C碼）
-  if (groups.other.length) {
-    let line = groups.other.join(",") + "," + sumGroup(groups.other, priceMap);
-    result.push(line);  // ❗ 不再加上個案名稱
-  }
-
-  document.querySelector("#generatedOutput").value = result.join("\n");
-}
-
-    function calculate(returnGroup = false) {
-  const rows = document.querySelectorAll("#serviceTable tbody tr");
-  let total = 0, copayTotal = 0, totalForQuota = 0;
-  const subsidyRate = parseFloat(document.querySelector("#subsidyRate").value);
-  let outputGroups = { BA: [], GA: [], SC: [], other: [], priceMap: {} };
-
-  rows.forEach(row => {
-    const select = row.querySelector("select");
-    const selectorBox = row.querySelector(".selector-button");
-const serviceCode = selectorBox ? selectorBox.dataset.value : "";
-    const nameInput = row.querySelector(".custom-name");
-    const name = nameInput ? nameInput.value : serviceCode;
-    const price = parseInt(row.querySelector(".price-input").value || 0);
-    const count = parseInt(row.querySelector(".count-input").value || 0);
-    const subtotal = price * count;
-    row.cells[3].textContent = subtotal;
-    total += subtotal;
-
-    // 只有 BA 或 自行輸入的才列入剩餘額度計算
-// ✅ 將 "C碼(單次)" 納入額度計算
-if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCode === "C碼(單次)") {
-  totalForQuota += subtotal;
-}
-
-    const perItemCopay = Math.floor(price * subsidyRate);
-    copayTotal += perItemCopay * count;
-
-    const item = `${name}*${count}`;
-    outputGroups.priceMap[name] = price;
-    if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCode === "C碼(單次)")
-  outputGroups.BA.push(item);
-    else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
-    else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
-    else outputGroups.other.push(item);
-  });
-
-  const subsidy = total - copayTotal;
-  const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
-  const hasExtraCare = document.querySelector("#extraCare").checked;
-  const finalQuota = hasExtraCare ? Math.floor(levelQuota * 0.3) : levelQuota;
-  const remaining = finalQuota - totalForQuota;
-
-  document.querySelector("#totalCost").textContent = total;
-  document.querySelector("#copayAmount").textContent = copayTotal;
-  document.querySelector("#subsidyAmount").textContent = subsidy;
-  const remainEl = document.querySelector("#remainingQuota");
-  remainEl.textContent = remaining;
-  remainEl.className = remaining >= 0 ? "blue" : "red";
-
-  return outputGroups;
-}
-
-    function clearAll() {
-      document.querySelector("#serviceTable tbody").innerHTML = "";
-      calculate();
-    }
-
-function addRow() {
-  const tbody = document.querySelector("#serviceTable tbody");
-  const row = document.createElement("tr");
-
-  // --------- 項目欄位 ----------
-  const serviceCell = document.createElement("td");
-  const wrapper = document.createElement("div");
-  wrapper.className = "select-wrapper";
-
-  const selectorBox = document.createElement("div");
-  selectorBox.className = "selector-button";
-  selectorBox.textContent = "請選擇";
-  selectorBox.dataset.value = "";
-selectorBox.style.color = "#7B7B7B";
-
-
-  wrapper.appendChild(selectorBox);
-  serviceCell.appendChild(wrapper);
-  row.appendChild(serviceCell);
-
-  selectorBox.onclick = () => {
-  openPopup((selectedCode) => {
-    selectorBox.textContent = selectedCode;
-    selectorBox.dataset.value = selectedCode;
-    selectorBox.style.color = ""; // ✅ 讓選到項目後恢復預設黑色
-
-      const priceInput = row.querySelector(".price-input");
-priceInput.value = services[selectedCode] || 0;
-
-if (selectedCode === "自行輸入") {
-  priceInput.type = "text";
-  priceInput.inputMode = "numeric";
-  priceInput.pattern = "[0-9]*";
-  priceInput.readOnly = false;
-priceInput.onfocus = () => priceInput.select(); 
-} else {
-  priceInput.type = "number";
-  priceInput.readOnly = true;
-}
-
-
-      // 清空 wrapper 並重新插入選擇器與輸入欄（若需要）
-      wrapper.innerHTML = '';
-      wrapper.appendChild(selectorBox);
-
-      if (selectedCode === "自行輸入") {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.className = "custom-name";
-        input.placeholder = "項目名稱";
-        input.oninput = () => input.value = input.value.toUpperCase();
-        wrapper.appendChild(input);
-      }
-
-      calculate();
-    });
-  };
-
-  // --------- 費用欄位 ----------
-  const priceCell = document.createElement("td");
-  const priceInput = document.createElement("input");
-  priceInput.type = "number";
-  priceInput.className = "price-input";
-  priceInput.inputMode = "numeric";
-  priceInput.pattern = "[0-9]*";
-  priceInput.value = 0;
-  priceInput.readOnly = true;
-  priceInput.oninput = calculate;
-  priceCell.appendChild(priceInput);
-  row.appendChild(priceCell);
-
-  // --------- 次數欄位 ----------
-  const countCell = document.createElement("td");
-  const counter = document.createElement("div");
-  counter.className = "counter-controls";
-
-  const minusBtn = document.createElement("button");
-  minusBtn.textContent = "-";
-
-  const countInput = document.createElement("input");
-  countInput.type = "number";
-  countInput.className = "count-input";
-  countInput.inputMode = "numeric";
-  countInput.pattern = "[0-9]*";
-  countInput.min = 0;
-  countInput.value = 1;
-  countInput.onfocus = () => countInput.select();
-  countInput.oninput = calculate;
-
-  const plusBtn = document.createElement("button");
-  plusBtn.textContent = "+";
-
-  minusBtn.addEventListener("pointerdown", () => {
-    if (countInput.value > 0) {
-      countInput.value--;
-      calculate();
-    }
-  });
-
-  plusBtn.addEventListener("pointerdown", () => {
-    countInput.value++;
-    calculate();
-  });
-
-  counter.appendChild(minusBtn);
-  counter.appendChild(countInput);
-  counter.appendChild(plusBtn);
-  countCell.appendChild(counter);
-  row.appendChild(countCell);
-
-  // --------- 小計欄位 ----------
-  const subtotalCell = document.createElement("td");
-  subtotalCell.textContent = "0";
-  row.appendChild(subtotalCell);
-
-  // --------- 刪除欄位 ----------
-  const deleteCell = document.createElement("td");
-  const deleteBtn = document.createElement("span");
-  deleteBtn.textContent = "🗑️";
-  deleteBtn.className = "delete-btn";
-  deleteBtn.onclick = () => {
-    row.remove();
-    calculate();
-  };
-  deleteCell.appendChild(deleteBtn);
-  row.appendChild(deleteCell);
-
-  tbody.appendChild(row);
-  calculate();
-}
-
-
-    function copyOutput() {
-      const output = document.querySelector("#generatedOutput");
-      output.select();
-      output.setSelectionRange(0, 99999);
-      document.execCommand("copy");
-      const notice = document.querySelector("#copyNotice");
-      notice.style.display = "block";
-      setTimeout(() => { notice.style.display = "none"; }, 3000);
-    }
-	function applyCount() {
-  const value = prompt("請輸入要套用的次數數字：");
-  const num = parseInt(value);
-  if (isNaN(num) || num < 0) {
-    alert("請輸入有效的正整數。");
+  if (!dateStr || !cmsLevel) {
+    resultBox.innerHTML = "請先選擇 CMS 等級與日期";
     return;
   }
 
-  document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
-  const code = row.querySelector(".selector-button")?.dataset.value || "";
-  if (code === "C碼(單次)" || code === "GA09" || code === "SC09") return;
+  const monthDays = getMonthDays(dateStr);
+  const passedDays = getDayOfMonth(dateStr) - 1;
+  const ratio = passedDays / monthDays;
 
-  const countInput = row.querySelector(".count-input");
-  if (countInput) countInput.value = num;
-});
+  const base = cmsData[cmsLevel][hasForeign ? "with_foreign" : "no_foreign"];
+  const careReduced = Math.round(base * ratio);
+  const transportBase = 1680;
+  const transportReduced = Math.round(transportBase * ratio);
 
-  calculate();
+  resultBox.innerHTML = `
+    <b>CMS ${cmsLevel} 級${hasForeign ? "（有外看）" : ""}</b><br>
+    🔹 扣除照顧及專業服務額度：<b>${careReduced} 元</b><br>
+    🚐 扣除交通接送額度：<b>${transportReduced} 元</b>
+  `;
 }
 
-    window.onload = () => addRow();
+function changeDate(offset) {
+  const dateInput = document.getElementById("selectDate");
+  const d = new Date(dateInput.value);
+  d.setDate(d.getDate() + offset);
+  dateInput.valueAsDate = d;
+  updateResults();
+}
 
-    // 以下是新增功能函式（請直接貼上）
-let hasBoundEnter = false;
+function copyText() {
+  const text = `依據長期照顧服務申請及給付辦法第三章第12條，未滿1個月者按比例計算照顧及交通接送額度。`;
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById("copyConfirm").style.display = "block";
+    setTimeout(() => {
+      document.getElementById("copyConfirm").style.display = "none";
+    }, 1500);
+  });
+}
 
-function applyCount() {
-  document.getElementById("countOverlay").style.display = "block";
-  const input = document.getElementById("countValue");
+function updateResults() {
+  const dateStr = document.getElementById("selectDate").value;
+  const cmsLevel = document.getElementById("cmsSelect").value;
+  const hasForeign = document.getElementById("hasForeign").checked;
+  const resultBox = document.getElementById("resultBox");
 
-  // 只綁定一次 Enter 鍵事件
-  if (!hasBoundEnter) {
-    input.addEventListener("keyup", function(e) {
-      if (e.key === "Enter") {
-        confirmApplyCount();
-      }
-    });
-    hasBoundEnter = true;
-  }
-
-  input.focus(); // 自動聚焦輸入框
+if (!dateStr || !cmsLevel) {
+  resultBox.innerHTML = `<span class="warning">請先選擇日期與CMS等級</span>`;
+  return;
 }
 
 
-    function confirmApplyCount() {
-      const value = document.getElementById("countValue").value;
-      const num = parseInt(value);
-      if (isNaN(num) || num < 0) {
-        alert("請輸入有效的正整數。");
-        return;
-      }
+  const monthDays = getMonthDays(dateStr);
+  const passedDays = getDayOfMonth(dateStr) - 1;
+  const ratio = passedDays / monthDays;
 
-      document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
-  const code = row.querySelector(".selector-button")?.dataset.value || "";
-  if (code === "C碼(單次)" || code === "GA09" || code === "SC09") return;
+  const base = cmsData[cmsLevel][hasForeign ? "with_foreign" : "no_foreign"];
+  const careReduced = Math.round(base * ratio);
+  const transportBase = 1680;
+  const transportReduced = Math.round(transportBase * ratio);
 
-  const countInput = row.querySelector(".count-input");
-  if (countInput) countInput.value = num;
-});
-
-      closeCountOverlay();
-      calculate();
-    }
-
-    function closeCountOverlay() {
-      document.getElementById("countOverlay").style.display = "none";
-      document.getElementById("countValue").value = "";
-    }
-
-// ✅ 使用手機原生分享功能（Web Share API）
-function shareToLine() {
-  const text = document.querySelector("#generatedOutput").value.trim();
-  if (!text) {
-    alert("請先產出內容！");
-    return;
-  }
-
-  if (navigator.share) {
-    navigator.share({
-      title: "長照服務試算內容",
-      text: text
-    }).catch(err => {
-      console.error("分享取消或失敗", err);
-    });
-  } else {
-    alert("您的裝置不支援原生分享功能。");
-  }
+  resultBox.innerHTML = `
+    <b>CMS ${cmsLevel} 級${hasForeign ? "（有外看）" : ""}</b>
+    <div class="result-table">
+      <div class="row"><span>🧓 扣除照顧專業額度：</span><b>${careReduced.toLocaleString('en-US')} 元</b></div>
+      <div class="row"><span>🚐 扣除交通接送額度：</span><b>${transportReduced.toLocaleString('en-US')} 元</b></div>
+  `;
 }
-
-// ✅ 判斷是否為手機裝置 + 支援 Web Share，決定是否顯示分享按鈕
 window.onload = () => {
-  addRow(); // 原本的功能
-
-  // 👉 加入裝置偵測判斷是否隱藏分享按鈕
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  const shareSupported = typeof navigator.share === "function";
-
-  const shareBtn = document.getElementById("shareBtn");
-  if (shareBtn && (!isMobile || !shareSupported)) {
-    shareBtn.style.display = "none";
-  }
+  updateResults();
 };
-// ✅ 防止 iOS 雙擊觸發縮放（保留原字體大小）
-let lastTouch = 0;
-document.addEventListener('touchend', function (e) {
-  const now = new Date().getTime();
-  if (now - lastTouch <= 300) {
-    e.preventDefault(); // 阻止第二次點擊導致縮放
-  }
-  lastTouch = now;
-}, { passive: false });
-document.getElementById("addRowBtn").addEventListener("pointerdown", addRow);
 
-const memories = { 1: null, 2: null, 3: null };
-let currentMemory = 1;
+const dateInput = document.getElementById('selectDate');
 
-function captureState() {
-  const rows = [];
-  document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
-    const select = row.querySelector("select");
-    const selectorBox = row.querySelector(".selector-button");
-const serviceCode = selectorBox ? selectorBox.dataset.value : "";
-    const customName = row.querySelector(".custom-name")?.value || "";
-    const price = parseInt(row.querySelector(".price-input").value || 0);
-    const count = parseInt(row.querySelector(".count-input").value || 0);
-    rows.push({ serviceCode, customName, price, count });
-  });
-
-  return {
-    rows,
-    subsidyRate: document.getElementById("subsidyRate").value,
-    disabilityLevel: document.getElementById("disabilityLevel").value,
-    extraCare: document.getElementById("extraCare").checked,
-    caseName: document.getElementById("caseName").value,
-    generatedOutput: document.getElementById("generatedOutput").value
-  };
-}
-
-function restoreState(state) {
-  clearAll();
-
-  state.rows.forEach(data => {
-    addRow(); // 先新增一列
-    const rows = document.querySelectorAll("#serviceTable tbody tr");
-    const row = rows[rows.length - 1]; // 取剛剛新增的那一列
-
-    const selectorBox = row.querySelector(".selector-button");
-    const priceInput = row.querySelector(".price-input");
-    const countInput = row.querySelector(".count-input");
-
-    if (data.serviceCode) {
-  selectorBox.textContent = data.serviceCode;
-  selectorBox.dataset.value = data.serviceCode;
-  selectorBox.style.color = "";
-} else {
-  selectorBox.textContent = "請選擇";
-  selectorBox.dataset.value = "";
-  selectorBox.style.color = "#7B7B7B"; // 還原灰色
-}
-
-    priceInput.value = data.price;
-    countInput.value = data.count;
-
-    if (data.serviceCode === "自行輸入") {
-      priceInput.readOnly = false;
-      priceInput.type = "text";
-      const input = document.createElement("input");
-      input.type = "text";
-      input.className = "custom-name";
-      input.placeholder = "項目名稱";
-      input.value = data.customName;
-      input.addEventListener("input", () => {
-        input.value = input.value.toUpperCase();
-      });
-      row.querySelector(".select-wrapper").appendChild(input);
-    } else {
-      priceInput.readOnly = true;
-    }
-  });
-
-  document.getElementById("subsidyRate").value = state.subsidyRate;
-  document.getElementById("disabilityLevel").value = state.disabilityLevel;
-  document.getElementById("extraCare").checked = state.extraCare;
-  document.getElementById("caseName").value = state.caseName;
-  document.getElementById("generatedOutput").value = state.generatedOutput;
-
-  calculate();
-}
-
-
-document.getElementById("memoryFieldset").addEventListener("change", e => {
-  if (e.target.name === "memorySlot") {
-    memories[currentMemory] = captureState();
-    currentMemory = parseInt(e.target.value);
-    if (memories[currentMemory]) {
-  restoreState(memories[currentMemory]);
-} else {
-  clearAll();
-  document.getElementById("caseName").value = "";
-  document.getElementById("generatedOutput").value = "";
-  document.getElementById("extraCare").checked = false; // ✅ 預設取消有外看
-  removedBARows = []; // ✅ 同步清空記錄
-  calculate();
-}
+// 1. 點欄框：保險起見手動叫出日曆
+dateInput.addEventListener('click', () => {
+  if (dateInput.showPicker) {          // Chromium 家族
+    dateInput.showPicker();
+  } else {                             // 其他瀏覽器
+    dateInput.focus();                 // 至少把游標帶進去
   }
 });
-
-// ✅ 修正 generateSummary 內容，產出後同步更新記憶
-const originalGenerateSummary = generateSummary;
-generateSummary = function () {
-  originalGenerateSummary();
-  memories[currentMemory] = captureState();
-}
-
-// ✅ 初始化記憶1狀態（在 onload 執行後做）
-window.addEventListener("load", () => {
-  memories[1] = captureState();
-});
-
-let removedBARows = [];
-
-document.getElementById("extraCare").addEventListener("change", function () {
-  const isChecked = this.checked;
-
-  if (isChecked) {
-    removedBARows = [];
-    const rows = document.querySelectorAll("#serviceTable tbody tr");
-    rows.forEach(row => {
-      const code = row.querySelector(".selector-button")?.dataset.value || "";
-      if (code.startsWith("BA")) {
-        removedBARows.push(serializeRow(row));
-        row.remove();
-      }
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('ServiceWorker 註冊成功:', reg.scope))
+        .catch(err => console.log('ServiceWorker 註冊失敗:', err));
     });
-    calculate();
-  } else {
-    removedBARows.forEach(data => {
-      addRow();
-      const rows = document.querySelectorAll("#serviceTable tbody tr");
-      const row = rows[rows.length - 1];
-
-      const selectorBox = row.querySelector(".selector-button");
-      const priceInput = row.querySelector(".price-input");
-      const countInput = row.querySelector(".count-input");
-
-      selectorBox.textContent = data.serviceCode;
-      selectorBox.dataset.value = data.serviceCode;
-      selectorBox.style.color = "";
-
-      priceInput.value = data.price;
-      countInput.value = data.count;
-
-      if (data.serviceCode === "自行輸入") {
-        priceInput.readOnly = false;
-        priceInput.type = "text";
-        const input = document.createElement("input");
-        input.type = "text";
-        input.className = "custom-name";
-        input.placeholder = "項目名稱";
-        input.value = data.customName;
-        input.addEventListener("input", () => {
-          input.value = input.value.toUpperCase();
-        });
-        row.querySelector(".select-wrapper").appendChild(input);
-      } else {
-        priceInput.readOnly = true;
-      }
-    });
-    removedBARows = [];
-    calculate();
   }
-});
-
-function serializeRow(row) {
-  return {
-    serviceCode: row.querySelector(".selector-button")?.dataset.value || "",
-    customName: row.querySelector(".custom-name")?.value || "",
-    price: parseInt(row.querySelector(".price-input").value || 0),
-    count: parseInt(row.querySelector(".count-input").value || 0)
-  };
-};
-// ✅ ←←←← 到這邊結束
-
-const serviceOptions = [
-  "BA01", "BA02", "BA03", "BA04", "BA05", "BA07", "BA10", "BA11", "BA12", "BA13",
-  "BA14", "BA15", "BA16", "BA17a", "BA17b", "BA17c", "BA17d1", "BA17d2", "BA17e",
-  "BA18", "BA20", "BA22", "BA23", "BA24",
-  "GA09", "SC09", "C碼(單次)", "自行輸入"
-];
-
-let popupCallback = null;
-
-function openPopup(callback) {
-  popupCallback = callback;
-  const grid = document.getElementById("popupGrid");
-  grid.innerHTML = "";
-
-  const columns = 3;
-  const total = serviceOptions.length;
-  const rows = Math.ceil(total / columns);
-
-  // 建立 3 個欄位容器
-  const columnContainers = [];
-  for (let i = 0; i < columns; i++) {
-    const col = document.createElement("div");
-    col.style.display = "flex";
-    col.style.flexDirection = "column";
-    col.style.gap = "0.5em";
-    columnContainers.push(col);
-    grid.appendChild(col);
-  }
-
-  // 照你要的順序塞入（1→11→21）
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < columns; col++) {
-      const idx = col * rows + row;
-      if (idx >= total) continue;
-      const opt = serviceOptions[idx];
-      const btn = document.createElement("button");
-      btn.textContent = opt;
-btn.className = "popup-btn";
-
-// ✅ 根據項目內容設定字體顏色
-if (opt === "自行輸入") {
-  btn.style.color = "#FF5151";
-} else if (opt === "GA09" || opt === "SC09") {
-  btn.style.color = "#FF0080";
-} else if (opt === "C碼(單次)") {
-  btn.style.color = "#007979";
-}
-
-btn.onclick = () => {
-  popupCallback(opt);
-  closePopup();
-};
-      columnContainers[col].appendChild(btn);
-    }
-  }
-
-  document.getElementById("popupSelector").style.display = "flex";
-}
-
-function closePopup() {
-  document.getElementById("popupSelector").style.display = "none";
-}
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(reg => {
-        console.log('Service Worker registered.', reg);
-      })
-      .catch(err => {
-        console.error('Service Worker registration failed:', err);
-      });
-  });
-}
-	//即時更新
 const version = '20240614';
-  document.querySelectorAll('link[rel="stylesheet"], script[src], link[rel*="icon"], link[rel="manifest"]').forEach(el => {
-    const attr = el.href !== undefined ? 'href' : 'src';
-    el[attr] += (el[attr].includes('?') ? '&' : '?') + 'v=' + version;
-  });
+document.querySelectorAll('link[rel="stylesheet"], script[src], link[rel*="icon"], link[rel="manifest"]').forEach(el => {
+  const attr = el.href !== undefined ? 'href' : 'src';
+  el[attr] += (el[attr].includes('?') ? '&' : '?') + 'v=' + version;
+});
 
-	  function openMiniWindow() {
+function openMiniWindow() {
   const miniWindow = window.open(
     window.location.href,
     'miniQuotaCalc',
@@ -1036,34 +343,20 @@ const version = '20240614';
   if (miniWindow) {
     miniWindow.focus();
   } else {
-    alert("無法開啟迷你視窗，請檢查是否被瀏覽器阻擋。");
+    alert("無法開啟迷你視窗，請檢查是否有瀏覽器阻擋彈出視窗。");
   }
 }
-
-function createShrinkButton() {
-  if (window.innerWidth >= 900) {
-    const btn = document.createElement("button");
-    btn.className = "shrink-btn";
-    btn.textContent = "📟 小視窗模式";
-    btn.onclick = openMiniWindow;
-    document.body.appendChild(btn);
+// 👇 Brave 強制顯示「小視窗模式」按鈕（只限桌機）
+window.addEventListener('DOMContentLoaded', () => {
+  const btn = document.querySelector('.shrink-btn');
+  if (btn && window.innerWidth >= 900) {
+    btn.style.display = 'block';
   }
-}
-
-window.addEventListener("load", () => {
-  createShrinkButton();
 });
-
-  </script>
-
-<!-- 📦 項目選擇彈窗 -->
-<div class="popup-selector" id="popupSelector" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center;">
-  <div class="popup-content" style="background: white; padding: 1em; border-radius: 10px; max-width: 90%; max-height: 80%; overflow-y: auto; box-shadow: 0 0 10px rgba(0,0,0,0.3);">
-    <div id="popupGrid" class="popup-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5em;"></div>
-    <div style="margin-top: 1em; text-align: center;">
-      <button onclick="closePopup()" style="padding: 0.5em 1em;">取消</button>
-    </div>
-  </div>
-</div>
+  
+</script>
+<div class="footer-note">Designed by KJ&nbsp;&nbsp;</div>
 </body>
 </html>
+
+
