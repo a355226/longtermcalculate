@@ -510,11 +510,23 @@ if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCod
   const remaining = finalQuota - totalForQuota;
 
   document.querySelector("#totalCost").textContent = total;
-  document.querySelector("#copayAmount").textContent = copayTotal;
-  document.querySelector("#subsidyAmount").textContent = subsidy;
+
   const remainEl = document.querySelector("#remainingQuota");
   remainEl.textContent = remaining;
   remainEl.className = remaining >= 0 ? "blue" : "red";
+
+  // 👉 若有超額，就使用上限值
+  let maxCopay = Math.floor(finalQuota * subsidyRate);
+  let maxSubsidy = finalQuota - maxCopay;
+
+  if (totalForQuota > finalQuota) {
+    document.querySelector("#copayAmount").textContent = `${maxCopay}（達上限）`;
+    document.querySelector("#subsidyAmount").textContent = `${maxSubsidy}（達上限）`;
+  } else {
+    document.querySelector("#copayAmount").textContent = copayTotal;
+    document.querySelector("#subsidyAmount").textContent = subsidy;
+  }
+
 
   return outputGroups;
 }
