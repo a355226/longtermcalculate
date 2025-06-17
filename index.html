@@ -531,10 +531,6 @@ if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCod
 if (totalForQuota > finalQuota) {
   document.querySelector("#copayAmount").innerHTML = `${maxCopay} 元<span class="small-red">（達上限）</span>`;
   document.querySelector("#subsidyAmount").innerHTML = `${maxSubsidy} 元<span class="small-red">（達上限）</span>`;
-} else {
-  document.querySelector("#copayAmount").textContent = `${copayTotal} 元`;
-  document.querySelector("#subsidyAmount").textContent = `${subsidy} 元`;
-}
 
 
   } else {
@@ -1101,5 +1097,3 @@ window.addEventListener("load", () => {
 </div>
 </body>
 </html>
-
-
