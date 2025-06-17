@@ -301,6 +301,11 @@ select {
   font-size: 0.7em;
 }
 
+#copayAmount,
+#subsidyAmount {
+  white-space: nowrap;
+}
+
 
 </style>
 </head>
@@ -343,8 +348,8 @@ select {
       <input type="checkbox" id="extraCare" onchange="calculate()"> 有外看
     </label>
 
-    <p>🧍 <strong>民眾自付額：</strong><span id="copayAmount">0</span> 元</p>
-    <p>🏛️ <strong>政府補助額：</strong><span id="subsidyAmount">0</span> 元</p>
+<p>🧍 <strong>民眾自付額：</strong><span id="copayAmount">0 元</span></p>
+<p>🏛️ <strong>政府補助額：</strong><span id="subsidyAmount">0 元</span></p>
     <p>💵 <strong>剩餘額度：</strong><span id="remainingQuota" class="blue">0</span> 元</p>
   </div>
 
@@ -523,9 +528,13 @@ if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCod
   let maxCopay = Math.floor(finalQuota * subsidyRate);
   let maxSubsidy = finalQuota - maxCopay;
 
-  if (totalForQuota > finalQuota) {
-document.querySelector("#copayAmount").innerHTML = `${maxCopay}<span class="small-red">（達上限）</span>`;
-document.querySelector("#subsidyAmount").innerHTML = `${maxSubsidy}<span class="small-red">（達上限）</span>`;
+if (totalForQuota > finalQuota) {
+  document.querySelector("#copayAmount").innerHTML = `${maxCopay} 元<span class="small-red">（達上限）</span>`;
+  document.querySelector("#subsidyAmount").innerHTML = `${maxSubsidy} 元<span class="small-red">（達上限）</span>`;
+} else {
+  document.querySelector("#copayAmount").textContent = `${copayTotal} 元`;
+  document.querySelector("#subsidyAmount").textContent = `${subsidy} 元`;
+}
 
 
   } else {
