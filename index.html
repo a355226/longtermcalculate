@@ -296,6 +296,10 @@ select {
     display: block;
   }
 }
+.small-red {
+  color: #dc3545;
+  font-size: 0.7em;
+}
 
 
 </style>
@@ -520,8 +524,9 @@ if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCod
   let maxSubsidy = finalQuota - maxCopay;
 
   if (totalForQuota > finalQuota) {
-document.querySelector("#copayAmount").innerHTML = `${maxCopay}<span class="red">（達上限）</span>`;
-document.querySelector("#subsidyAmount").innerHTML = `${maxSubsidy}<span class="red">（達上限）</span>`;
+document.querySelector("#copayAmount").innerHTML = `${maxCopay}<span class="small-red">（達上限）</span>`;
+document.querySelector("#subsidyAmount").innerHTML = `${maxSubsidy}<span class="small-red">（達上限）</span>`;
+
 
   } else {
     document.querySelector("#copayAmount").textContent = copayTotal;
