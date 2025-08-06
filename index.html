@@ -431,13 +431,17 @@ const services = {
   "BA14": 685, "BA15": 195, "BA16": 130,
   "BA17a": 75, "BA17b": 65, "BA17c": 50, "BA17d1": 50, "BA17d2": 50,
   "BA17e": 50, "BA18": 200, "BA20": 175, "BA22": 130, "BA23": 200,
-  "BA24": 220, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自定義": 0
+  "BA24": 220, "BB01": 675, "BB02": 340, "BB03": 840, "BB04": 420,
+"BB05": 920, "BB06": 460, "BB07": 1045, "BB08": 525,
+"BB09": 1130, "BB10": 565, "BB11": 1210, "BB12": 605,
+"BB13": 1285, "BB14": 645, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自定義": 0
 };
 
-    const serviceOrder = Object.keys(services).filter(k => k.startsWith("BA"))
-      .concat(Object.keys(services).filter(k => k.startsWith("GA")))
-      .concat(Object.keys(services).filter(k => k.startsWith("SC")))
-      .concat(["C碼(單次)", "自定義"]);
+   const serviceOrder = Object.keys(services)
+  .filter(k => k.startsWith("BA") || k.startsWith("BB"))   // ✅ 加入 BB
+  .concat(Object.keys(services).filter(k => k.startsWith("GA")))
+  .concat(Object.keys(services).filter(k => k.startsWith("SC")))
+  .concat(["C碼(單次)", "自定義"]);
 
     function sumGroup(arr, priceMap) {
       return arr.reduce((sum, item) => {
@@ -529,7 +533,7 @@ const serviceCode = selectorBox ? selectorBox.dataset.value : "";
     row.cells[3].textContent = subtotal;
     total += subtotal;
 
-    // 只有 BA 或 自行輸入的才列入剩餘額度計算
+    // 只有 BA 或 自定義的才列入剩餘額度計算
 // ✅ 將 "C碼(單次)" 納入額度計算
 if (serviceCode.startsWith("BA") || serviceCode.startsWith("BB") || serviceCode === "自定義" || serviceCode === "C碼(單次)") {
   totalForQuota += subtotal;
@@ -550,6 +554,7 @@ if (serviceCode.startsWith("BA") || serviceCode.startsWith("BB") || serviceCode 
 } else {
   outputGroups.other.push(item);
 }
+  });
 
   const subsidy = total - copayTotal;
   const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
@@ -1206,4 +1211,6 @@ window.addEventListener("load", () => {
 </div>
 </body>
 </html>
+
+
 
