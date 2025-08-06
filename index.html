@@ -644,7 +644,7 @@ priceInput.onfocus = () => priceInput.select();
         const input = document.createElement("input");
         input.type = "text";
         input.className = "custom-name";
-        input.placeholder = "項目名稱";
+        input.placeholder = "請輸入";
         input.oninput = () => input.value = input.value.toUpperCase();
         wrapper.appendChild(input);
       }
@@ -903,7 +903,7 @@ function restoreState(state) {
       const input = document.createElement("input");
       input.type = "text";
       input.className = "custom-name";
-      input.placeholder = "項目名稱";
+      input.placeholder = "請輸入";
       input.value = data.customName;
       input.addEventListener("input", () => {
         input.value = input.value.toUpperCase();
@@ -992,7 +992,7 @@ document.getElementById("extraCare").addEventListener("change", function () {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "custom-name";
-        input.placeholder = "項目名稱";
+        input.placeholder = "請輸入";
         input.value = data.customName;
         input.addEventListener("input", () => {
           input.value = input.value.toUpperCase();
