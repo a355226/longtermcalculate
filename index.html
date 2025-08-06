@@ -431,13 +431,13 @@ const services = {
   "BA14": 685, "BA15": 195, "BA16": 130,
   "BA17a": 75, "BA17b": 65, "BA17c": 50, "BA17d1": 50, "BA17d2": 50,
   "BA17e": 50, "BA18": 200, "BA20": 175, "BA22": 130, "BA23": 200,
-  "BA24": 220, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自行輸入": 0
+  "BA24": 220, "GA09": 770, "SC09": 770, "C碼(單次)": 1500, "自定義": 0
 };
 
     const serviceOrder = Object.keys(services).filter(k => k.startsWith("BA"))
       .concat(Object.keys(services).filter(k => k.startsWith("GA")))
       .concat(Object.keys(services).filter(k => k.startsWith("SC")))
-      .concat(["C碼(單次)", "自行輸入"]);
+      .concat(["C碼(單次)", "自定義"]);
 
     function sumGroup(arr, priceMap) {
       return arr.reduce((sum, item) => {
@@ -531,7 +531,7 @@ const serviceCode = selectorBox ? selectorBox.dataset.value : "";
 
     // 只有 BA 或 自行輸入的才列入剩餘額度計算
 // ✅ 將 "C碼(單次)" 納入額度計算
-if (serviceCode.startsWith("BA") || serviceCode.startsWith("BB") || serviceCode === "自行輸入" || serviceCode === "C碼(單次)") {
+if (serviceCode.startsWith("BA") || serviceCode.startsWith("BB") || serviceCode === "自定義" || serviceCode === "C碼(單次)") {
   totalForQuota += subtotal;
 }
 
@@ -540,12 +540,16 @@ if (serviceCode.startsWith("BA") || serviceCode.startsWith("BB") || serviceCode 
 
     const item = `${name}*${count}`;
     outputGroups.priceMap[name] = price;
-    if (serviceCode.startsWith("BA") || serviceCode === "自行輸入" || serviceCode === "C碼(單次)")
+  // ✅ 將 BB 代碼也歸到 BA 群組
+if (serviceCode.startsWith("BA") || serviceCode.startsWith("BB") || serviceCode === "自定義" || serviceCode === "C碼(單次)") {
   outputGroups.BA.push(item);
-    else if (serviceCode.startsWith("GA")) outputGroups.GA.push(item);
-    else if (serviceCode.startsWith("SC")) outputGroups.SC.push(item);
-    else outputGroups.other.push(item);
-  });
+} else if (serviceCode.startsWith("GA")) {
+  outputGroups.GA.push(item);
+} else if (serviceCode.startsWith("SC")) {
+  outputGroups.SC.push(item);
+} else {
+  outputGroups.other.push(item);
+}
 
   const subsidy = total - copayTotal;
   const levelQuota = parseInt(document.querySelector("#disabilityLevel").value);
@@ -615,7 +619,7 @@ selectorBox.style.color = "#7B7B7B";
 
 
 
-if (selectedCode === "自行輸入") {
+if (selectedCode === "自定義") {
   priceInput.type = "text";
   priceInput.inputMode = "numeric";
   priceInput.pattern = "[0-9]*";
@@ -631,7 +635,7 @@ priceInput.onfocus = () => priceInput.select();
       wrapper.innerHTML = '';
       wrapper.appendChild(selectorBox);
 
-      if (selectedCode === "自行輸入") {
+      if (selectedCode === "自定義") {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "custom-name";
@@ -888,7 +892,7 @@ function restoreState(state) {
     priceInput.value = data.price;
     countInput.value = data.count;
 
-    if (data.serviceCode === "自行輸入") {
+    if (data.serviceCode === "自定義") {
       priceInput.readOnly = false;
       priceInput.type = "text";
       const input = document.createElement("input");
@@ -977,7 +981,7 @@ document.getElementById("extraCare").addEventListener("change", function () {
       priceInput.value = data.price;
       countInput.value = data.count;
 
-      if (data.serviceCode === "自行輸入") {
+      if (data.serviceCode === "自定義") {
         priceInput.readOnly = false;
         priceInput.type = "text";
         const input = document.createElement("input");
@@ -1012,7 +1016,7 @@ const serviceOptions = [
   "BA01", "BA02", "BA03", "BA04", "BA05", "BA07", "BA10", "BA11", "BA12", "BA13",
   "BA14", "BA15", "BA16", "BA17a", "BA17b", "BA17c", "BA17d1", "BA17d2", "BA17e",
   "BA18", "BA20", "BA22", "BA23", "BA24",
-  "GA09", "SC09", "BB碼","C碼(單次)", "自行輸入"
+  "GA09", "SC09", "BB碼","C碼(單次)", "自定義"
 ];
 
 let popupCallback = null;
@@ -1054,7 +1058,7 @@ function openPopup(callback) {
       btn.className = "popup-btn";
 
       // ✅ 設定字體顏色
-      if (opt === "自行輸入") {
+      if (opt === "自定義") {
         btn.style.color = "#FF5151";
       } else if (opt === "GA09" || opt === "SC09") {
         btn.style.color = "#FF0080";
