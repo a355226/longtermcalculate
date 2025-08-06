@@ -1068,19 +1068,25 @@ function openBBPopup() {
   const grid = document.getElementById("popupGrid");
   grid.innerHTML = "";
 
-  // ✅ 第二層改為兩欄
+  // ✅ 設定為兩欄
   grid.style.display = "grid";
   grid.style.gridTemplateColumns = "repeat(2, 1fr)";
-  grid.style.gap = "0.5em";
+  grid.style.gap = "0.75em";
   grid.style.justifyContent = "center";
 
   bbOptions.forEach(opt => {
     const btn = document.createElement("button");
     btn.textContent = opt.label;
     btn.className = "popup-btn";
+
+    // ✅ 放大 BB 按鈕尺寸與字體
+    btn.style.fontSize = "1.1em";
+    btn.style.padding = "0.75em 1em";
+    btn.style.fontWeight = "bold";
+
     btn.onclick = () => {
-      popupCallback(opt.code, opt.price);  // ✅ 帶入代碼與金額
-      closePopup(); // ✅ 點擊後關閉視窗
+      popupCallback(opt.code, opt.price);
+      closePopup();
     };
     grid.appendChild(btn);
   });
