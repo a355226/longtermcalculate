@@ -306,6 +306,41 @@ select {
   white-space: nowrap;
 }
 
+/* 表頭字體 */
+#serviceTable th {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* 表格內容字體 */
+#serviceTable td {
+  font-size: 1.1em;
+}
+
+/* 按鈕字體 */
+.counter-controls button {
+  font-size: 0.8em;
+  padding: 0 12px;
+}
+
+/* 輸入框字體 */
+.price-input,
+.count-input {
+  font-size: 1.1em;
+  height: 1.5em;
+  text-align: center;
+}
+
+/* 項目選擇按鈕 */
+.selector-button {
+  font-size: 0.9em;
+  padding: 0.4em 0em;   /* 適度內距 */
+  width: 95%;             /* ✅ 填滿格子但留一點空隙 */
+  max-width: 100%;        /* ✅ 防止超出 */
+  box-sizing: border-box; /* ✅ 包含 padding */
+}
+
+
 
 </style>
 </head>
@@ -1167,5 +1202,4 @@ window.addEventListener("load", () => {
 </div>
 </body>
 </html>
-
 
